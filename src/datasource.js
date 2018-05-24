@@ -97,6 +97,17 @@ export class AwsCloudWatchLogsDatasource {
       });
     }
 
+    let logStreamNamesQuery = query.match(/^log_stream_names\(([^,]+?),\s?(.+)\)/);
+    if (logStreamNamesQuery) {
+      region = logStreamNamesQuery[1];
+      let logGroupName = logStreamNamesQuery[2];
+      return this.doMetricQueryRequest('log_stream_names', {
+        region: this.templateSrv.replace(region),
+        logGroupName: this.templateSrv.replace(logGroupName)
+      });
+    }
+
+
     return this.$q.when([]);
   }
 

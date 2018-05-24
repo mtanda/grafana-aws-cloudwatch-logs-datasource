@@ -159,6 +159,26 @@ func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, param
 		for _, g := range groups.LogGroups {
 			data = append(data, suggestData{Text: *g.LogGroupName, Value: *g.LogGroupName})
 		}
+	case "log_stream_names":
+		ctx := context.Background()
+		logGroupName := parameters.Get("logGroupName").MustString()
+		streams := &cloudwatchlogs.DescribeLogStreamsOutput{}
+		err = svc.DescribeLogStreamsPagesWithContext(ctx, &cloudwatchlogs.DescribeLogStreamsInput{
+			LogGroupName: aws.String(logGroupName),
+		}, func(page *cloudwatchlogs.DescribeLogStreamsOutput, lastPage bool) bool {
+			streams.LogStreams = append(streams.LogStreams, page.LogStreams...)
+			return !lastPage
+		})
+		if err != nil {
+			return nil, err
+		}
+		sort.Slice(streams.LogStreams, func(i, j int) bool {
+			return *streams.LogStreams[i].CreationTime > *streams.LogStreams[j].CreationTime
+		})
+
+		for _, g := range streams.LogStreams {
+			data = append(data, suggestData{Text: *g.LogStreamName, Value: *g.LogStreamName})
+		}
 	}
 
 	table := t.transformToTable(data)
