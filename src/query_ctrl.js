@@ -8,6 +8,7 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
     this.target.type = this.target.type || 'timeserie';
     this.target.region = this.target.region || '';
     this.target.logGroupName = this.target.logGroupName || '';
+    this.target.logStreamNames = this.target.logStreamNames || [];
     this.target.filterPattern = this.target.filterPattern || '';
   }
 
