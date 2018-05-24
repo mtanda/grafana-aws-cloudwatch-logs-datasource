@@ -144,6 +144,16 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
               });
             }
 
+            var logStreamNamesQuery = query.match(/^log_stream_names\(([^,]+?),\s?(.+)\)/);
+            if (logStreamNamesQuery) {
+              region = logStreamNamesQuery[1];
+              var logGroupName = logStreamNamesQuery[2];
+              return this.doMetricQueryRequest('log_stream_names', {
+                region: this.templateSrv.replace(region),
+                logGroupName: this.templateSrv.replace(logGroupName)
+              });
+            }
+
             return this.$q.when([]);
           }
         }, {

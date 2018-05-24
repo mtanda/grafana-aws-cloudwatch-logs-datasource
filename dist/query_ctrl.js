@@ -70,6 +70,7 @@ System.register(['app/plugins/sdk'], function (_export, _context) {
           _this.target.type = _this.target.type || 'timeserie';
           _this.target.region = _this.target.region || '';
           _this.target.logGroupName = _this.target.logGroupName || '';
+          _this.target.logStreamNames = _this.target.logStreamNames || [];
           _this.target.filterPattern = _this.target.filterPattern || '';
           return _this;
         }
