@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-System.register(["lodash", "app/core/table_model"], function (_export, _context) {
+System.register(['lodash', 'app/core/table_model'], function (_export, _context) {
   "use strict";
 
   var _, TableModel, _createClass, AwsCloudWatchLogsDatasource;
@@ -36,7 +36,7 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
         };
       }();
 
-      _export("AwsCloudWatchLogsDatasource", AwsCloudWatchLogsDatasource = function () {
+      _export('AwsCloudWatchLogsDatasource', AwsCloudWatchLogsDatasource = function () {
         function AwsCloudWatchLogsDatasource(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
           _classCallCheck(this, AwsCloudWatchLogsDatasource);
 
@@ -52,7 +52,7 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
         }
 
         _createClass(AwsCloudWatchLogsDatasource, [{
-          key: "query",
+          key: 'query',
           value: function query(options) {
             var query = this.buildQueryParameters(options);
             query.targets = query.targets.filter(function (t) {
@@ -68,12 +68,21 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
             });
           }
         }, {
-          key: "testDatasource",
+          key: 'testDatasource',
           value: function testDatasource() {
-            return this.q.when({ status: "success", message: "Data source is working", title: "Success" });
+            var _this = this;
+
+            return this.doMetricQueryRequest('log_group_names', {
+              region: this.defaultRegion,
+              prefix: 'test'
+            }).then(function (res) {
+              return _this.q.when({ status: "success", message: "Data source is working", title: "Success" });
+            }).catch(function (err) {
+              return { status: "error", message: err.message, title: "Error" };
+            });
           }
         }, {
-          key: "doRequest",
+          key: 'doRequest',
           value: function doRequest(options) {
             return this.backendSrv.datasourceRequest({
               url: '/api/tsdb/query',
@@ -106,21 +115,21 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
             });
           }
         }, {
-          key: "buildQueryParameters",
+          key: 'buildQueryParameters',
           value: function buildQueryParameters(options) {
-            var _this = this;
+            var _this2 = this;
 
             var targets = _.map(options.targets, function (target) {
               return {
                 refId: target.refId,
                 hide: target.hide,
-                datasourceId: _this.id,
+                datasourceId: _this2.id,
                 queryType: 'timeSeriesQuery',
                 format: target.type || 'timeserie',
-                region: target.region || _this.defaultRegion,
+                region: target.region || _this2.defaultRegion,
                 input: {
-                  logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
-                  filterPattern: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
+                  logGroupName: _this2.templateSrv.replace(target.logGroupName, options.scopedVars),
+                  filterPattern: _this2.templateSrv.replace(target.filterPattern, options.scopedVars),
                   interleaved: false
                 }
               };
@@ -130,7 +139,7 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
             return options;
           }
         }, {
-          key: "metricFindQuery",
+          key: 'metricFindQuery',
           value: function metricFindQuery(query) {
             var region = void 0;
 
@@ -157,9 +166,9 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
             return this.$q.when([]);
           }
         }, {
-          key: "doMetricQueryRequest",
+          key: 'doMetricQueryRequest',
           value: function doMetricQueryRequest(subtype, parameters) {
-            var _this2 = this;
+            var _this3 = this;
 
             var range = this.timeSrv.timeRange();
             return this.backendSrv.datasourceRequest({
@@ -176,11 +185,11 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
                 }, parameters)]
               }
             }).then(function (r) {
-              return _this2.transformSuggestDataFromTable(r.data);
+              return _this3.transformSuggestDataFromTable(r.data);
             });
           }
         }, {
-          key: "transformSuggestDataFromTable",
+          key: 'transformSuggestDataFromTable',
           value: function transformSuggestDataFromTable(suggestData) {
             return _.map(suggestData.results['metricFindQuery'].tables[0].rows, function (v) {
               return {
@@ -194,7 +203,7 @@ System.register(["lodash", "app/core/table_model"], function (_export, _context)
         return AwsCloudWatchLogsDatasource;
       }());
 
-      _export("AwsCloudWatchLogsDatasource", AwsCloudWatchLogsDatasource);
+      _export('AwsCloudWatchLogsDatasource', AwsCloudWatchLogsDatasource);
     }
   };
 });
