@@ -28,7 +28,14 @@ export class AwsCloudWatchLogsDatasource {
   }
 
   testDatasource() {
-    return this.q.when({ status: "success", message: "Data source is working", title: "Success" });
+    return this.doMetricQueryRequest('log_group_names', {
+      region: this.defaultRegion,
+      prefix: 'test'
+    }).then(res => {
+      return this.q.when({ status: "success", message: "Data source is working", title: "Success" });
+    }).catch(err => {
+      return { status: "error", message: err.message, title: "Error" };
+    });
   }
 
   doRequest(options) {

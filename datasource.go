@@ -30,13 +30,60 @@ type Target struct {
 	Input     cloudwatchlogs.FilterLogEventsInput
 }
 
-func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
-	response := &datasource.DatasourceResponse{}
+var (
+	clientCache = make(map[string]*cloudwatchlogs.CloudWatchLogs)
+)
 
+func (t *AwsCloudWatchLogsDatasource) GetClient(region string) (*cloudwatchlogs.CloudWatchLogs, error) {
+	if client, ok := clientCache[region]; ok {
+		return client, nil
+	}
+	cfg := &aws.Config{Region: aws.String(region)}
+	sess, err := session.NewSession(cfg)
+	if err != nil {
+		return nil, err
+	}
+	clientCache[region] = cloudwatchlogs.New(sess, cfg)
+	return clientCache[region], nil
+}
+
+func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
 	modelJson, err := simplejson.NewJson([]byte(tsdbReq.Queries[0].ModelJson))
 	if err != nil {
 		return nil, err
 	}
+	if modelJson.Get("queryType").MustString() == "metricFindQuery" {
+		response, err := t.metricFindQuery(ctx, modelJson)
+		if err != nil {
+			return &datasource.DatasourceResponse{
+				Results: []*datasource.QueryResult{
+					&datasource.QueryResult{
+						RefId: "metricFindQuery",
+						Error: err.Error(),
+					},
+				},
+			}, nil
+		}
+		return response, nil
+	}
+
+	response, err := t.handleQuery(tsdbReq)
+	if err != nil {
+		return &datasource.DatasourceResponse{
+			Results: []*datasource.QueryResult{
+				&datasource.QueryResult{
+					Error: err.Error(),
+				},
+			},
+		}, nil
+	}
+
+	return response, nil
+}
+
+func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
+	response := &datasource.DatasourceResponse{}
+
 	fromRaw, err := strconv.ParseInt(tsdbReq.TimeRange.FromRaw, 10, 64)
 	if err != nil {
 		return nil, err
@@ -45,15 +92,6 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 	if err != nil {
 		return nil, err
 	}
-	if modelJson.Get("queryType").MustString() == "metricFindQuery" {
-		r, err := t.metricFindQuery(ctx, modelJson)
-		if err != nil {
-			return nil, err
-		}
-		response.Results = append(response.Results, r)
-		return response, nil
-	}
-
 	targets := make([]Target, 0)
 	for _, query := range tsdbReq.Queries {
 		target := Target{}
@@ -66,12 +104,10 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 	}
 
 	for _, target := range targets {
-		awsCfg := &aws.Config{Region: aws.String(target.Region)}
-		sess, err := session.NewSession(awsCfg)
+		svc, err := t.GetClient(target.Region)
 		if err != nil {
 			return nil, err
 		}
-		svc := cloudwatchlogs.New(sess, awsCfg)
 
 		resp := &cloudwatchlogs.FilterLogEventsOutput{}
 		err = svc.FilterLogEventsPages(&target.Input,
@@ -127,14 +163,12 @@ type suggestData struct {
 	Value string
 }
 
-func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, parameters *simplejson.Json) (*datasource.QueryResult, error) {
+func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, parameters *simplejson.Json) (*datasource.DatasourceResponse, error) {
 	region := parameters.Get("region").MustString()
-	awsCfg := &aws.Config{Region: aws.String(region)}
-	sess, err := session.NewSession(awsCfg)
+	svc, err := t.GetClient(region)
 	if err != nil {
 		return nil, err
 	}
-	svc := cloudwatchlogs.New(sess, awsCfg)
 
 	subtype := parameters.Get("subtype").MustString()
 
@@ -182,9 +216,13 @@ func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, param
 	}
 
 	table := t.transformToTable(data)
-	return &datasource.QueryResult{
-		RefId:  "metricFindQuery",
-		Tables: []*datasource.Table{table},
+	return &datasource.DatasourceResponse{
+		Results: []*datasource.QueryResult{
+			&datasource.QueryResult{
+				RefId:  "metricFindQuery",
+				Tables: []*datasource.Table{table},
+			},
+		},
 	}, nil
 }
 
