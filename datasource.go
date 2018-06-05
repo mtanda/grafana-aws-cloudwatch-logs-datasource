@@ -66,6 +66,50 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 		}
 		return response, nil
 	}
+	if modelJson.Get("queryType").MustString() == "annotationQuery" {
+		target := Target{}
+		if err := json.Unmarshal([]byte(tsdbReq.Queries[0].ModelJson), &target); err != nil {
+			return nil, err
+		}
+		fromRaw, err := strconv.ParseInt(tsdbReq.TimeRange.FromRaw, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		toRaw, err := strconv.ParseInt(tsdbReq.TimeRange.ToRaw, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		target.Input.StartTime = aws.Int64(fromRaw)
+		target.Input.EndTime = aws.Int64(toRaw)
+
+		svc, err := t.GetClient(target.Region)
+		if err != nil {
+			return nil, err
+		}
+
+		resp := &cloudwatchlogs.FilterLogEventsOutput{}
+		err = svc.FilterLogEventsPages(&target.Input,
+			func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
+				resp.Events = append(resp.Events, page.Events...)
+				return !lastPage
+			})
+		if err != nil {
+			return nil, err
+		}
+
+		resultJson, err := json.Marshal(resp)
+		if err != nil {
+			return nil, err
+		}
+
+		return &datasource.DatasourceResponse{
+			Results: []*datasource.QueryResult{
+				&datasource.QueryResult{
+					MetaJson: string(resultJson),
+				},
+			},
+		}, nil
+	}
 
 	response, err := t.handleQuery(tsdbReq)
 	if err != nil {

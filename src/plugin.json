@@ -6,7 +6,7 @@
     "config": "public/app/plugins/datasource/mtanda-aws-cloudwatch-logs-datasource/partials/config.html"
   },
   "metrics": true,
-  "annotations": false,
+  "annotations": true,
   "backend": true,
   "executable": "aws-cloudwatch-logs-plugin",
   "info": {

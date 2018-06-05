@@ -151,4 +151,71 @@ export class AwsCloudWatchLogsDatasource {
       };
     });
   }
+
+  annotationQuery(options) {
+    let annotation = options.annotation;
+    let region = annotation.region || this.defaultRegion;
+    let logGroupName = annotation.logGroupName || '';
+    let filterPattern = annotation.filterPattern || '';
+    let tagKeys = annotation.tagKeys || '';
+    tagKeys = tagKeys.split(',');
+    let titleFormat = annotation.titleFormat || '';
+    let textFormat = annotation.textFormat || '';
+
+    if (_.isEmpty(region) || _.isEmpty(logGroupName)) { return Promise.resolve([]); }
+
+    let range = this.timeSrv.timeRange();
+    return this.backendSrv.datasourceRequest({
+      url: '/api/tsdb/query',
+      method: 'POST',
+      data: {
+        from: range.from.valueOf().toString(),
+        to: range.to.valueOf().toString(),
+        queries: [
+          {
+            refId: 'annotationQuery',
+            datasourceId: this.id,
+            queryType: 'annotationQuery',
+            region: this.templateSrv.replace(region),
+            input: {
+              logGroupName: this.templateSrv.replace(logGroupName),
+              filterPattern: this.templateSrv.replace(filterPattern),
+              interleaved: false
+            }
+          }
+        ]
+      }
+    }).then(r => {
+      if (!r.data.results[""].meta.Events) {
+        return [];
+      }
+      let eventList = r.data.results[""].meta.Events.map((event) => {
+        let messageJson = JSON.parse(event.Message);
+        let tags = _.chain(messageJson)
+          .filter((v, k) => {
+            return _.includes(tagKeys, k);
+          }).value();
+
+        return {
+          annotation: annotation,
+          time: event.Timestamp,
+          title: this.renderTemplate(titleFormat, messageJson),
+          tags: tags,
+          text: this.renderTemplate(textFormat, messageJson)
+        };
+      });
+
+      return eventList;
+    });
+  }
+
+  renderTemplate(aliasPattern, aliasData) {
+    var aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
+    return aliasPattern.replace(aliasRegex, function (match, g1) {
+      if (aliasData[g1]) {
+        return aliasData[g1];
+      }
+      return g1;
+    });
+  }
 }

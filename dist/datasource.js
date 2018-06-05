@@ -198,6 +198,76 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
               };
             });
           }
+        }, {
+          key: 'annotationQuery',
+          value: function annotationQuery(options) {
+            var _this4 = this;
+
+            var annotation = options.annotation;
+            var region = annotation.region || this.defaultRegion;
+            var logGroupName = annotation.logGroupName || '';
+            var filterPattern = annotation.filterPattern || '';
+            var tagKeys = annotation.tagKeys || '';
+            tagKeys = tagKeys.split(',');
+            var titleFormat = annotation.titleFormat || '';
+            var textFormat = annotation.textFormat || '';
+
+            if (_.isEmpty(region) || _.isEmpty(logGroupName)) {
+              return Promise.resolve([]);
+            }
+
+            var range = this.timeSrv.timeRange();
+            return this.backendSrv.datasourceRequest({
+              url: '/api/tsdb/query',
+              method: 'POST',
+              data: {
+                from: range.from.valueOf().toString(),
+                to: range.to.valueOf().toString(),
+                queries: [{
+                  refId: 'annotationQuery',
+                  datasourceId: this.id,
+                  queryType: 'annotationQuery',
+                  region: this.templateSrv.replace(region),
+                  input: {
+                    logGroupName: this.templateSrv.replace(logGroupName),
+                    filterPattern: this.templateSrv.replace(filterPattern),
+                    interleaved: false
+                  }
+                }]
+              }
+            }).then(function (r) {
+              if (!r.data.results[""].meta.Events) {
+                return [];
+              }
+              var eventList = r.data.results[""].meta.Events.map(function (event) {
+                var messageJson = JSON.parse(event.Message);
+                var tags = _.chain(messageJson).filter(function (v, k) {
+                  return _.includes(tagKeys, k);
+                }).value();
+
+                return {
+                  annotation: annotation,
+                  time: event.Timestamp,
+                  title: _this4.renderTemplate(titleFormat, messageJson),
+                  tags: tags,
+                  text: _this4.renderTemplate(textFormat, messageJson)
+                };
+              });
+
+              return eventList;
+            });
+          }
+        }, {
+          key: 'renderTemplate',
+          value: function renderTemplate(aliasPattern, aliasData) {
+            var aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
+            return aliasPattern.replace(aliasRegex, function (match, g1) {
+              if (aliasData[g1]) {
+                return aliasData[g1];
+              }
+              return g1;
+            });
+          }
         }]);
 
         return AwsCloudWatchLogsDatasource;
