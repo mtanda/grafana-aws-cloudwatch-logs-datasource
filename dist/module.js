@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['./datasource', './query_ctrl'], function (_export, _context) {
+System.register(['./datasource', './query_ctrl', './annotations_query_ctrl'], function (_export, _context) {
   "use strict";
 
-  var AwsCloudWatchLogsDatasource, AwsCloudWatchLogsDatasourceQueryCtrl, AwsCloudWatchLogsDatasourceConfigCtrl;
+  var AwsCloudWatchLogsDatasource, AwsCloudWatchLogsDatasourceQueryCtrl, AwsCloudWatchLogsAnnotationsQueryCtrl, AwsCloudWatchLogsDatasourceConfigCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -16,6 +16,8 @@ System.register(['./datasource', './query_ctrl'], function (_export, _context) {
       AwsCloudWatchLogsDatasource = _datasource.AwsCloudWatchLogsDatasource;
     }, function (_query_ctrl) {
       AwsCloudWatchLogsDatasourceQueryCtrl = _query_ctrl.AwsCloudWatchLogsDatasourceQueryCtrl;
+    }, function (_annotations_query_ctrl) {
+      AwsCloudWatchLogsAnnotationsQueryCtrl = _annotations_query_ctrl.AwsCloudWatchLogsAnnotationsQueryCtrl;
     }],
     execute: function () {
       _export('ConfigCtrl', AwsCloudWatchLogsDatasourceConfigCtrl = function AwsCloudWatchLogsDatasourceConfigCtrl() {
@@ -29,6 +31,8 @@ System.register(['./datasource', './query_ctrl'], function (_export, _context) {
       _export('QueryCtrl', AwsCloudWatchLogsDatasourceQueryCtrl);
 
       _export('ConfigCtrl', AwsCloudWatchLogsDatasourceConfigCtrl);
+
+      _export('AnnotationsQueryCtrl', AwsCloudWatchLogsAnnotationsQueryCtrl);
     }
   };
 });
