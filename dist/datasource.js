@@ -120,6 +120,19 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
             var _this2 = this;
 
             var targets = _.map(options.targets, function (target) {
+              var input = {
+                logGroupName: _this2.templateSrv.replace(target.logGroupName, options.scopedVars),
+                logStreamNames: target.logStreamNames.filter(function (n) {
+                  return n !== "";
+                }).map(function (n) {
+                  return _this2.templateSrv.replace(n, options.scopedVars);
+                }),
+                filterPattern: _this2.templateSrv.replace(target.filterPattern, options.scopedVars),
+                interleaved: false
+              };
+              if (input.logStreamNames.length === 0) {
+                delete input.logStreamNames;
+              }
               return {
                 refId: target.refId,
                 hide: target.hide,
@@ -127,11 +140,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
                 queryType: 'timeSeriesQuery',
                 format: target.type || 'timeserie',
                 region: _this2.templateSrv.replace(target.region, options.scopedVars) || _this2.defaultRegion,
-                input: {
-                  logGroupName: _this2.templateSrv.replace(target.logGroupName, options.scopedVars),
-                  filterPattern: _this2.templateSrv.replace(target.filterPattern, options.scopedVars),
-                  interleaved: false
-                }
+                input: input
               };
             });
 
