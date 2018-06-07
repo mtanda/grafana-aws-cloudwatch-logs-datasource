@@ -78,7 +78,7 @@ export class AwsCloudWatchLogsDatasource {
         datasourceId: this.id,
         queryType: 'timeSeriesQuery',
         format: target.type || 'timeserie',
-        region: target.region || this.defaultRegion,
+        region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
         input: {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
           filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
