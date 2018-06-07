@@ -72,6 +72,15 @@ export class AwsCloudWatchLogsDatasource {
 
   buildQueryParameters(options) {
     let targets = _.map(options.targets, target => {
+      let input = {
+        logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
+        logStreamNames: target.logStreamNames.filter(n => { return n !== ""; }).map(n => { return this.templateSrv.replace(n, options.scopedVars); }),
+        filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
+        interleaved: false
+      };
+      if (input.logStreamNames.length === 0) {
+        delete input.logStreamNames;
+      }
       return {
         refId: target.refId,
         hide: target.hide,
@@ -79,11 +88,7 @@ export class AwsCloudWatchLogsDatasource {
         queryType: 'timeSeriesQuery',
         format: target.type || 'timeserie',
         region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
-        input: {
-          logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
-          interleaved: false
-        }
+        input: input
       };
     });
 
