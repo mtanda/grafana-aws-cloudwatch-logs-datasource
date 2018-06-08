@@ -82,17 +82,7 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 		target.Input.StartTime = aws.Int64(fromRaw)
 		target.Input.EndTime = aws.Int64(toRaw)
 
-		svc, err := t.GetClient(target.Region)
-		if err != nil {
-			return nil, err
-		}
-
-		resp := &cloudwatchlogs.FilterLogEventsOutput{}
-		err = svc.FilterLogEventsPages(&target.Input,
-			func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
-				resp.Events = append(resp.Events, page.Events...)
-				return !lastPage
-			})
+		resp, err := t.getLogEvent(target.Region, &target.Input)
 		if err != nil {
 			return nil, err
 		}
@@ -148,17 +138,7 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 	}
 
 	for _, target := range targets {
-		svc, err := t.GetClient(target.Region)
-		if err != nil {
-			return nil, err
-		}
-
-		resp := &cloudwatchlogs.FilterLogEventsOutput{}
-		err = svc.FilterLogEventsPages(&target.Input,
-			func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
-				resp.Events = append(resp.Events, page.Events...)
-				return !lastPage
-			})
+		resp, err := t.getLogEvent(target.Region, &target.Input)
 		if err != nil {
 			return nil, err
 		}
@@ -176,6 +156,25 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 	}
 
 	return response, nil
+}
+
+func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwatchlogs.FilterLogEventsInput) (*cloudwatchlogs.FilterLogEventsOutput, error) {
+	svc, err := t.GetClient(region)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &cloudwatchlogs.FilterLogEventsOutput{}
+	err = svc.FilterLogEventsPages(input,
+		func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
+			resp.Events = append(resp.Events, page.Events...)
+			return !lastPage
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func parseTableResponse(resp *cloudwatchlogs.FilterLogEventsOutput, refId string) (*datasource.QueryResult, error) {
