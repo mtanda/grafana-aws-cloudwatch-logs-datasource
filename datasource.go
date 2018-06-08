@@ -165,11 +165,36 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwat
 	}
 
 	resp := &cloudwatchlogs.FilterLogEventsOutput{}
-	err = svc.FilterLogEventsPages(input,
-		func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
-			resp.Events = append(resp.Events, page.Events...)
-			return !lastPage
-		})
+	if *input.FilterPattern != "" || len(input.LogStreamNames) != 1 {
+		err = svc.FilterLogEventsPages(input,
+			func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
+				resp.Events = append(resp.Events, page.Events...)
+				return !lastPage
+			})
+	} else {
+		i := &cloudwatchlogs.GetLogEventsInput{
+			StartTime:     input.StartTime,
+			EndTime:       input.EndTime,
+			LogGroupName:  input.LogGroupName,
+			LogStreamName: input.LogStreamNames[0],
+			StartFromHead: aws.Bool(true),
+			NextToken:     input.NextToken,
+		}
+		err = svc.GetLogEventsPages(i,
+			func(page *cloudwatchlogs.GetLogEventsOutput, lastPage bool) bool {
+				for _, e := range page.Events {
+					fe := &cloudwatchlogs.FilteredLogEvent{
+						LogStreamName: input.LogStreamNames[0],
+						IngestionTime: e.IngestionTime,
+						Message:       e.Message,
+						Timestamp:     e.Timestamp,
+					}
+					resp.Events = append(resp.Events, fe)
+				}
+				//return !lastPage
+				return false
+			})
+	}
 	if err != nil {
 		return nil, err
 	}
