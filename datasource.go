@@ -190,8 +190,7 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwat
 					}
 					resp.Events = append(resp.Events, fe)
 				}
-				//return !lastPage
-				return false
+				return !lastPage
 			})
 	}
 	if err != nil {
