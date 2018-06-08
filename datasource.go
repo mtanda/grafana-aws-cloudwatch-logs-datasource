@@ -178,7 +178,6 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwat
 			LogGroupName:  input.LogGroupName,
 			LogStreamName: input.LogStreamNames[0],
 			StartFromHead: aws.Bool(true),
-			NextToken:     input.NextToken,
 		}
 		err = svc.GetLogEventsPages(i,
 			func(page *cloudwatchlogs.GetLogEventsOutput, lastPage bool) bool {
