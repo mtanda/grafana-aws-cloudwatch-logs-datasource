@@ -169,6 +169,9 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwat
 		err = svc.FilterLogEventsPages(input,
 			func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
 				resp.Events = append(resp.Events, page.Events...)
+				if len(resp.Events) > 1000 {
+					return false // safety limit
+				}
 				return !lastPage
 			})
 	} else {
@@ -189,6 +192,9 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwat
 						Timestamp:     e.Timestamp,
 					}
 					resp.Events = append(resp.Events, fe)
+				}
+				if len(resp.Events) > 1000 {
+					return false // safety limit
 				}
 				return !lastPage
 			})
@@ -247,6 +253,9 @@ func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, param
 			LogGroupNamePrefix: aws.String(prefix),
 		}, func(page *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
 			groups.LogGroups = append(groups.LogGroups, page.LogGroups...)
+			if len(groups.LogGroups) > 1000 {
+				return false // safety limit
+			}
 			return !lastPage
 		})
 		if err != nil {
@@ -267,6 +276,9 @@ func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, param
 			LogGroupName: aws.String(logGroupName),
 		}, func(page *cloudwatchlogs.DescribeLogStreamsOutput, lastPage bool) bool {
 			streams.LogStreams = append(streams.LogStreams, page.LogStreams...)
+			if len(streams.LogStreams) > 1000 {
+				return false // safety limit
+			}
 			return !lastPage
 		})
 		if err != nil {
