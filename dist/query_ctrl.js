@@ -61,7 +61,7 @@ System.register(['app/plugins/sdk'], function (_export, _context) {
       _export('AwsCloudWatchLogsDatasourceQueryCtrl', AwsCloudWatchLogsDatasourceQueryCtrl = function (_QueryCtrl) {
         _inherits(AwsCloudWatchLogsDatasourceQueryCtrl, _QueryCtrl);
 
-        function AwsCloudWatchLogsDatasourceQueryCtrl($scope, $injector) {
+        function AwsCloudWatchLogsDatasourceQueryCtrl($scope, $injector, templateSrv) {
           _classCallCheck(this, AwsCloudWatchLogsDatasourceQueryCtrl);
 
           var _this = _possibleConstructorReturn(this, (AwsCloudWatchLogsDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(AwsCloudWatchLogsDatasourceQueryCtrl)).call(this, $scope, $injector));
@@ -72,6 +72,34 @@ System.register(['app/plugins/sdk'], function (_export, _context) {
           _this.target.logGroupName = _this.target.logGroupName || '';
           _this.target.logStreamNames = _this.target.logStreamNames || [];
           _this.target.filterPattern = _this.target.filterPattern || '';
+          _this.templateSrv = templateSrv;
+
+          _this.suggestLogGroupName = function (query, callback) {
+            var region = _this.target.region || _this.defaultRegion;
+            return _this.datasource.doMetricQueryRequest('log_group_names', {
+              region: _this.templateSrv.replace(region),
+              prefix: query
+            }).then(function (data) {
+              callback(data.map(function (d) {
+                return d.value;
+              }));
+            });
+          };
+
+          _this.suggestLogStreamName = function (query, callback) {
+            if (!_this.target.logGroupName) {
+              return callback([]);
+            }
+            var region = _this.target.region || _this.defaultRegion;
+            return _this.datasource.doMetricQueryRequest('log_stream_names', {
+              region: _this.templateSrv.replace(region),
+              logGroupName: _this.target.logGroupName
+            }).then(function (data) {
+              callback(data.map(function (d) {
+                return d.value;
+              }));
+            });
+          };
           return _this;
         }
 

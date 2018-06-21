@@ -22,7 +22,7 @@
     <div class="gf-form">
       <label class="gf-form-label width-20">Log Group Name</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.logGroupName" spellcheck='false' data-min-length=0 data-items=1000
-        ng-model-onblur ng-change="ctrl.onChangeInternal()">
+        ng-model-onblur bs-typeahead="ctrl.suggestLogGroupName" ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
   </div>
@@ -31,7 +31,7 @@
     <div class="gf-form">
       <label class="gf-form-label width-20">Log Stream Names</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.logStreamNames[0]" spellcheck='false' data-min-length=0 data-items=1000
-        ng-model-onblur ng-change="ctrl.onChangeInternal()">
+        ng-model-onblur bs-typeahead="ctrl.suggestLogStreamName" ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
   </div>
