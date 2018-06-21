@@ -247,13 +247,13 @@ func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, param
 	data := make([]suggestData, 0)
 	switch subtype {
 	case "log_group_names":
-		prefix := parameters.Get("prefix").MustString()
+		prefix := parameters.Get("logGroupNamePrefix").MustString()
 		groups := &cloudwatchlogs.DescribeLogGroupsOutput{}
 		err = svc.DescribeLogGroupsPages(&cloudwatchlogs.DescribeLogGroupsInput{
 			LogGroupNamePrefix: aws.String(prefix),
 		}, func(page *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
 			groups.LogGroups = append(groups.LogGroups, page.LogGroups...)
-			if len(groups.LogGroups) > 1000 {
+			if len(groups.LogGroups) > 100 {
 				return false // safety limit
 			}
 			return !lastPage
@@ -271,12 +271,17 @@ func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, param
 	case "log_stream_names":
 		ctx := context.Background()
 		logGroupName := parameters.Get("logGroupName").MustString()
-		streams := &cloudwatchlogs.DescribeLogStreamsOutput{}
-		err = svc.DescribeLogStreamsPagesWithContext(ctx, &cloudwatchlogs.DescribeLogStreamsInput{
+		prefix := parameters.Get("logStreamNamePrefix").MustString()
+		params := &cloudwatchlogs.DescribeLogStreamsInput{
 			LogGroupName: aws.String(logGroupName),
-		}, func(page *cloudwatchlogs.DescribeLogStreamsOutput, lastPage bool) bool {
+		}
+		if len(prefix) > 0 {
+			params.LogStreamNamePrefix = aws.String(prefix)
+		}
+		streams := &cloudwatchlogs.DescribeLogStreamsOutput{}
+		err = svc.DescribeLogStreamsPagesWithContext(ctx, params, func(page *cloudwatchlogs.DescribeLogStreamsOutput, lastPage bool) bool {
 			streams.LogStreams = append(streams.LogStreams, page.LogStreams...)
-			if len(streams.LogStreams) > 1000 {
+			if len(streams.LogStreams) > 100 {
 				return false // safety limit
 			}
 			return !lastPage

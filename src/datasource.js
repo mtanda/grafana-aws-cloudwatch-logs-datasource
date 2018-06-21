@@ -30,7 +30,7 @@ export class AwsCloudWatchLogsDatasource {
   testDatasource() {
     return this.doMetricQueryRequest('log_group_names', {
       region: this.defaultRegion,
-      prefix: 'test'
+      logGroupNamePrefix: 'test'
     }).then(res => {
       return this.q.when({ status: "success", message: "Data source is working", title: "Success" });
     }).catch(err => {
@@ -105,7 +105,7 @@ export class AwsCloudWatchLogsDatasource {
       let prefix = logGroupNamesQuery[2];
       return this.doMetricQueryRequest('log_group_names', {
         region: this.templateSrv.replace(region),
-        prefix: this.templateSrv.replace(prefix)
+        logGroupNamePrefix: this.templateSrv.replace(prefix)
       });
     }
 
@@ -115,7 +115,8 @@ export class AwsCloudWatchLogsDatasource {
       let logGroupName = logStreamNamesQuery[2];
       return this.doMetricQueryRequest('log_stream_names', {
         region: this.templateSrv.replace(region),
-        logGroupName: this.templateSrv.replace(logGroupName)
+        logGroupName: this.templateSrv.replace(logGroupName),
+        logStreamNamePrefix: ""
       });
     }
 

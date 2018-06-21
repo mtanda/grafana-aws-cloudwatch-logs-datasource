@@ -16,7 +16,7 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
       let region = this.target.region || this.defaultRegion;
       return this.datasource.doMetricQueryRequest('log_group_names', {
         region: this.templateSrv.replace(region),
-        prefix: query
+        logGroupNamePrefix: query
       }).then(data => {
         callback(data.map(d => { return d.value; }))
       });
@@ -29,7 +29,8 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
       let region = this.target.region || this.defaultRegion;
       return this.datasource.doMetricQueryRequest('log_stream_names', {
         region: this.templateSrv.replace(region),
-        logGroupName: this.target.logGroupName
+        logGroupName: this.target.logGroupName,
+        logStreamNamePrefix: query
       }).then(data => {
         callback(data.map(d => { return d.value; }))
       });
