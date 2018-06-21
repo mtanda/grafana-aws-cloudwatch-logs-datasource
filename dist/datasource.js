@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['lodash', 'app/core/table_model'], function (_export, _context) {
+System.register(['lodash', 'app/core/table_model', 'app/core/utils/flatten'], function (_export, _context) {
   "use strict";
 
-  var _, TableModel, _createClass, AwsCloudWatchLogsDatasource;
+  var _, TableModel, flatten, _createClass, AwsCloudWatchLogsDatasource;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -16,6 +16,8 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
       _ = _lodash.default;
     }, function (_appCoreTable_model) {
       TableModel = _appCoreTable_model.default;
+    }, function (_appCoreUtilsFlatten) {
+      flatten = _appCoreUtilsFlatten.default;
     }],
     execute: function () {
       _createClass = function () {
@@ -84,6 +86,8 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
         }, {
           key: 'doRequest',
           value: function doRequest(options) {
+            var _this2 = this;
+
             return this.backendSrv.datasourceRequest({
               url: '/api/tsdb/query',
               method: 'POST',
@@ -102,10 +106,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
                 }
                 if (!_.isEmpty(r.tables)) {
                   _.forEach(r.tables, function (t) {
-                    var table = new TableModel();
-                    table.columns = t.columns;
-                    table.rows = t.rows;
-                    res.push(table);
+                    res.push(_this2.expandMessageField(t));
                   });
                 }
               });
@@ -117,17 +118,17 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
         }, {
           key: 'buildQueryParameters',
           value: function buildQueryParameters(options) {
-            var _this2 = this;
+            var _this3 = this;
 
             var targets = _.map(options.targets, function (target) {
               var input = {
-                logGroupName: _this2.templateSrv.replace(target.logGroupName, options.scopedVars),
+                logGroupName: _this3.templateSrv.replace(target.logGroupName, options.scopedVars),
                 logStreamNames: target.logStreamNames.filter(function (n) {
                   return n !== "";
                 }).map(function (n) {
-                  return _this2.templateSrv.replace(n, options.scopedVars);
+                  return _this3.templateSrv.replace(n, options.scopedVars);
                 }),
-                filterPattern: _this2.templateSrv.replace(target.filterPattern, options.scopedVars),
+                filterPattern: _this3.templateSrv.replace(target.filterPattern, options.scopedVars),
                 interleaved: false
               };
               if (input.logStreamNames.length === 0) {
@@ -136,16 +137,70 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
               return {
                 refId: target.refId,
                 hide: target.hide,
-                datasourceId: _this2.id,
+                datasourceId: _this3.id,
                 queryType: 'timeSeriesQuery',
                 format: target.type || 'timeserie',
-                region: _this2.templateSrv.replace(target.region, options.scopedVars) || _this2.defaultRegion,
+                region: _this3.templateSrv.replace(target.region, options.scopedVars) || _this3.defaultRegion,
                 input: input
               };
             });
 
             options.targets = targets;
             return options;
+          }
+        }, {
+          key: 'expandMessageField',
+          value: function expandMessageField(originalTable) {
+            var table = new TableModel();
+            var i, j;
+            var metricLabels = {};
+
+            if (originalTable.rows.length === 0) {
+              return table;
+            }
+            table.columns = originalTable.columns;
+
+            // Collect all labels across all metrics
+            var messageIndex = table.columns.findIndex(function (c) {
+              return c.text === 'Message';
+            });
+            var messages = originalTable.rows.map(function (r) {
+              var messageJson = {};
+              try {
+                if (r[messageIndex][0] === '{') {
+                  messageJson = JSON.parse(r[messageIndex]);
+                }
+              } catch (err) {
+                // ignore error
+              }
+              return messageJson;
+            });
+            _.each(messages.slice(0, 100), function (message) {
+              var flattened = flatten(message, null);
+              for (var propName in flattened) {
+                metricLabels[propName] = 1;
+              }
+            });
+
+            // Sort metric labels, create columns for them and record their index
+            var sortedLabels = _.keys(metricLabels).sort();
+            _.each(sortedLabels, function (label, labelIndex) {
+              metricLabels[label] = labelIndex + 1;
+              table.columns.push({ text: label });
+            });
+
+            // Populate rows, set value to empty string when label not present.
+            for (i = 0; i < originalTable.rows.length; i++) {
+              var reordered = originalTable.rows[i];
+              var message = messages[i];
+              for (j = 0; j < sortedLabels.length; j++) {
+                var label = sortedLabels[j];
+                reordered.push(_.get(message, label) || '');
+              }
+              table.rows.push(reordered);
+            }
+
+            return table;
           }
         }, {
           key: 'metricFindQuery',
@@ -178,7 +233,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
         }, {
           key: 'doMetricQueryRequest',
           value: function doMetricQueryRequest(subtype, parameters) {
-            var _this3 = this;
+            var _this4 = this;
 
             var range = this.timeSrv.timeRange();
             return this.backendSrv.datasourceRequest({
@@ -195,7 +250,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
                 }, parameters)]
               }
             }).then(function (r) {
-              return _this3.transformSuggestDataFromTable(r.data);
+              return _this4.transformSuggestDataFromTable(r.data);
             });
           }
         }, {
@@ -211,7 +266,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
         }, {
           key: 'annotationQuery',
           value: function annotationQuery(options) {
-            var _this4 = this;
+            var _this5 = this;
 
             var annotation = options.annotation;
             var region = annotation.region || this.defaultRegion;
@@ -258,9 +313,9 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
                 return {
                   annotation: annotation,
                   time: event.Timestamp,
-                  title: _this4.renderTemplate(titleFormat, messageJson),
+                  title: _this5.renderTemplate(titleFormat, messageJson),
                   tags: tags,
-                  text: _this4.renderTemplate(textFormat, messageJson)
+                  text: _this5.renderTemplate(textFormat, messageJson)
                 };
               });
 
