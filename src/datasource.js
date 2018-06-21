@@ -1,5 +1,6 @@
 import _ from "lodash";
 import TableModel from 'app/core/table_model';
+import flatten from 'app/core/utils/flatten';
 
 export class AwsCloudWatchLogsDatasource {
   constructor(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
@@ -57,10 +58,7 @@ export class AwsCloudWatchLogsDatasource {
         }
         if (!_.isEmpty(r.tables)) {
           _.forEach(r.tables, t => {
-            let table = new TableModel()
-            table.columns = t.columns
-            table.rows = t.rows
-            res.push(table);
+            res.push(this.expandMessageField(t));
           })
         }
       })
@@ -94,6 +92,59 @@ export class AwsCloudWatchLogsDatasource {
 
     options.targets = targets;
     return options;
+  }
+
+  expandMessageField(originalTable) {
+    var table = new TableModel();
+    var i, j;
+    var metricLabels = {};
+
+    if (originalTable.rows.length === 0) {
+      return table;
+    }
+    table.columns = originalTable.columns;
+
+    // Collect all labels across all metrics
+    let messageIndex = table.columns.findIndex(c => {
+      return c.text === 'Message';
+    });
+    let messages = originalTable.rows.map(r => {
+      let messageJson = {};
+      try {
+        if (r[messageIndex][0] === '{') {
+          messageJson = JSON.parse(r[messageIndex]);
+        }
+      } catch (err) {
+        // ignore error
+      }
+      return messageJson;
+    })
+    _.each(messages.slice(0, 100), (message) => {
+      let flattened = flatten(message, null);
+      for (let propName in flattened) {
+        metricLabels[propName] = 1;
+      }
+    });
+
+    // Sort metric labels, create columns for them and record their index
+    let sortedLabels = _.keys(metricLabels).sort();
+    _.each(sortedLabels, function (label, labelIndex) {
+      metricLabels[label] = labelIndex + 1;
+      table.columns.push({ text: label });
+    });
+
+    // Populate rows, set value to empty string when label not present.
+    for (i = 0; i < originalTable.rows.length; i++) {
+      let reordered = originalTable.rows[i];
+      let message = messages[i];
+      for (j = 0; j < sortedLabels.length; j++) {
+        let label = sortedLabels[j];
+        reordered.push(_.get(message, label) || '');
+      }
+      table.rows.push(reordered);
+    }
+
+    return table;
   }
 
   metricFindQuery(query) {
