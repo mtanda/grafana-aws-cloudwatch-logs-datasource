@@ -78,7 +78,7 @@ System.register(['app/plugins/sdk'], function (_export, _context) {
             var region = _this.target.region || _this.defaultRegion;
             return _this.datasource.doMetricQueryRequest('log_group_names', {
               region: _this.templateSrv.replace(region),
-              prefix: query
+              logGroupNamePrefix: query
             }).then(function (data) {
               callback(data.map(function (d) {
                 return d.value;
@@ -93,7 +93,8 @@ System.register(['app/plugins/sdk'], function (_export, _context) {
             var region = _this.target.region || _this.defaultRegion;
             return _this.datasource.doMetricQueryRequest('log_stream_names', {
               region: _this.templateSrv.replace(region),
-              logGroupName: _this.target.logGroupName
+              logGroupName: _this.target.logGroupName,
+              logStreamNamePrefix: query
             }).then(function (data) {
               callback(data.map(function (d) {
                 return d.value;

@@ -74,7 +74,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
 
             return this.doMetricQueryRequest('log_group_names', {
               region: this.defaultRegion,
-              prefix: 'test'
+              logGroupNamePrefix: 'test'
             }).then(function (res) {
               return _this.q.when({ status: "success", message: "Data source is working", title: "Success" });
             }).catch(function (err) {
@@ -158,7 +158,7 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
               var prefix = logGroupNamesQuery[2];
               return this.doMetricQueryRequest('log_group_names', {
                 region: this.templateSrv.replace(region),
-                prefix: this.templateSrv.replace(prefix)
+                logGroupNamePrefix: this.templateSrv.replace(prefix)
               });
             }
 
@@ -168,7 +168,8 @@ System.register(['lodash', 'app/core/table_model'], function (_export, _context)
               var logGroupName = logStreamNamesQuery[2];
               return this.doMetricQueryRequest('log_stream_names', {
                 region: this.templateSrv.replace(region),
-                logGroupName: this.templateSrv.replace(logGroupName)
+                logGroupName: this.templateSrv.replace(logGroupName),
+                logStreamNamePrefix: ""
               });
             }
 
