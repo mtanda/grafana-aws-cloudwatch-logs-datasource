@@ -12,7 +12,7 @@ import (
 )
 
 // ServiceDiscovery provides the API operation methods for making requests to
-// Amazon Route 53 Auto Naming. See this package's package overview docs
+// AWS Cloud Map. See this package's package overview docs
 // for details on the service.
 //
 // ServiceDiscovery methods are safe to use concurrently. It is not safe to
@@ -29,9 +29,9 @@ var initRequest func(*request.Request)
 
 // Service information constants
 const (
-	ServiceName = "servicediscovery" // Service endpoint prefix API calls made to.
-	EndpointsID = ServiceName        // Service ID for Regions and Endpoints metadata.
-	ServiceID   = "ServiceDiscovery" // ServiceID is a unique identifer of a specific service
+	ServiceName = "servicediscovery" // Name of service.
+	EndpointsID = ServiceName        // ID to lookup a service endpoint with.
+	ServiceID   = "ServiceDiscovery" // ServiceID is a unique identifer of a specific service.
 )
 
 // New creates a new instance of the ServiceDiscovery client with a session.

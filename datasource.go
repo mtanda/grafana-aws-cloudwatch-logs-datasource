@@ -10,7 +10,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/grafana/grafana/pkg/components/simplejson"
@@ -30,30 +29,13 @@ type Target struct {
 	Input     cloudwatchlogs.FilterLogEventsInput
 }
 
-var (
-	clientCache = make(map[string]*cloudwatchlogs.CloudWatchLogs)
-)
-
-func (t *AwsCloudWatchLogsDatasource) GetClient(region string) (*cloudwatchlogs.CloudWatchLogs, error) {
-	if client, ok := clientCache[region]; ok {
-		return client, nil
-	}
-	cfg := &aws.Config{Region: aws.String(region)}
-	sess, err := session.NewSession(cfg)
-	if err != nil {
-		return nil, err
-	}
-	clientCache[region] = cloudwatchlogs.New(sess, cfg)
-	return clientCache[region], nil
-}
-
 func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
 	modelJson, err := simplejson.NewJson([]byte(tsdbReq.Queries[0].ModelJson))
 	if err != nil {
 		return nil, err
 	}
 	if modelJson.Get("queryType").MustString() == "metricFindQuery" {
-		response, err := t.metricFindQuery(ctx, modelJson)
+		response, err := t.metricFindQuery(ctx, tsdbReq, modelJson)
 		if err != nil {
 			return &datasource.DatasourceResponse{
 				Results: []*datasource.QueryResult{
@@ -82,7 +64,7 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 		target.Input.StartTime = aws.Int64(fromRaw)
 		target.Input.EndTime = aws.Int64(toRaw)
 
-		resp, err := t.getLogEvent(target.Region, &target.Input)
+		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input)
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +120,7 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 	}
 
 	for _, target := range targets {
-		resp, err := t.getLogEvent(target.Region, &target.Input)
+		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input)
 		if err != nil {
 			return nil, err
 		}
@@ -158,8 +140,8 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 	return response, nil
 }
 
-func (t *AwsCloudWatchLogsDatasource) getLogEvent(region string, input *cloudwatchlogs.FilterLogEventsInput) (*cloudwatchlogs.FilterLogEventsOutput, error) {
-	svc, err := t.GetClient(region)
+func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.DatasourceRequest, region string, input *cloudwatchlogs.FilterLogEventsInput) (*cloudwatchlogs.FilterLogEventsOutput, error) {
+	svc, err := t.getClient(tsdbReq.Datasource, region)
 	if err != nil {
 		return nil, err
 	}
@@ -235,9 +217,9 @@ type suggestData struct {
 	Value string
 }
 
-func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, parameters *simplejson.Json) (*datasource.DatasourceResponse, error) {
+func (t *AwsCloudWatchLogsDatasource) metricFindQuery(ctx context.Context, tsdbReq *datasource.DatasourceRequest, parameters *simplejson.Json) (*datasource.DatasourceResponse, error) {
 	region := parameters.Get("region").MustString()
-	svc, err := t.GetClient(region)
+	svc, err := t.getClient(tsdbReq.Datasource, region)
 	if err != nil {
 		return nil, err
 	}
