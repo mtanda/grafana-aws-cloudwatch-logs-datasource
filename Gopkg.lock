@@ -2,6 +2,7 @@
 
 
 [[projects]]
+  digest = "1:2f245539121de543cc8a58318712d83da09bb559f61921c1df6c598f07ceff30"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -13,6 +14,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -21,8 +23,10 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/json/jsonutil",
@@ -32,71 +36,83 @@
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
     "service/cloudwatchlogs",
-    "service/sts"
+    "service/sts",
   ]
-  revision = "152e9ff2c63af90874bf3eff1286acee291d0065"
-  version = "v1.14.2"
-
-[[projects]]
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  revision = "6529cf7c58879c08d927016dde4477f18a0634cb"
-  version = "v1.36.0"
+  pruneopts = ""
+  revision = "6ff66bb2b8ac90ac25b1dbbf9806f09651630789"
+  version = "v1.17.12"
 
 [[projects]]
   branch = "master"
+  digest = "1:abb26b258251ba640353d0b2bf73010259461d65111457ed1422fcd00bf8dd6a"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
-    "ptypes/timestamp"
+    "ptypes/timestamp",
   ]
+  pruneopts = ""
   revision = "3a3da3a4e26776cc22a79ef46d5d58477532dede"
 
 [[projects]]
+  digest = "1:b01ffc757f51709738fb42f0761f3860ab873aa060bf70eb38142b841054d52f"
   name = "github.com/grafana/grafana"
   packages = ["pkg/components/simplejson"]
+  pruneopts = ""
   revision = "08714328541b963fdfdbafb8c6ca1bc23499b5f7"
   version = "v5.1.3"
 
 [[projects]]
   branch = "master"
+  digest = "1:6db30d7298ac5691b32ea629dec9cc197c006793512a71ee90e8040eed8aa8cc"
   name = "github.com/grafana/grafana_plugin_model"
   packages = ["go/datasource"]
+  pruneopts = ""
   revision = "dfe5dc0a6ce05825ba7fe2d0323d92e631bffa89"
 
 [[projects]]
   branch = "master"
+  digest = "1:fc9a2736d92cf885c9b3c7f202d3aaf783bb2cc4124078f0ef7667b72173b66c"
   name = "github.com/hashicorp/go-hclog"
   packages = ["."]
+  pruneopts = ""
   revision = "69ff559dc25f3b435631604f573a5fa1efdb6433"
 
 [[projects]]
+  digest = "1:0f7f675183c57379e3032ceefde5c0c62f4e287e563ec22de293f0d52d708bde"
   name = "github.com/hashicorp/go-plugin"
   packages = ["."]
+  pruneopts = ""
   revision = "3e6d191694b5a3a2b99755f31b47fa209e4bcd09"
 
 [[projects]]
   branch = "master"
+  digest = "1:f9a62feb8295380942889460d0008f9fc34c4ad288821efb2ec15168a91b3404"
   name = "github.com/hashicorp/yamux"
   packages = ["."]
-  revision = "2658be15c5f05e76244154714161f17e3e77de2e"
+  pruneopts = ""
+  revision = "2f1d1f20f75d5404f53b9edf6b53ed5505508675"
 
 [[projects]]
+  digest = "1:13fe471d0ed891e8544eddfeeb0471fd3c9f2015609a1c000aefdedf52a19d40"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
-  revision = "0b12d6b5"
+  pruneopts = ""
+  revision = "c2b33e84"
 
 [[projects]]
   branch = "master"
+  digest = "1:51c98e2c9a8d0a724a69f46421876af14e12132cb02f1d0e144785d752247162"
   name = "github.com/mitchellh/go-testing-interface"
   packages = ["."]
+  pruneopts = ""
   revision = "a61a99592b77c9ba629d254a693acffaeb4b7e28"
 
 [[projects]]
   branch = "master"
+  digest = "1:f922addb30dcb034e5ee1fa731d724864e6d74966991ad2437584710a4699738"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -105,11 +121,13 @@
     "http2/hpack",
     "idna",
     "internal/timeseries",
-    "trace"
+    "trace",
   ]
+  pruneopts = ""
   revision = "9ef9f5bb98a1fdc41f8cf6c250a4404b4085e389"
 
 [[projects]]
+  digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -125,18 +143,22 @@
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
-    "unicode/rangetable"
+    "unicode/rangetable",
   ]
+  pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:eccdfd750f21fb2f1a147d7863df2163fe43040839c81353d28ce78876de34c7"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
+  pruneopts = ""
   revision = "11a468237815f3a3ddf9f7c6e8b6b3b382a24d15"
 
 [[projects]]
+  digest = "1:72f0e0c3092355544e3522115e558002de5231f1b18d9edbad44f3b440e447ef"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -164,14 +186,29 @@
     "stats",
     "status",
     "tap",
-    "transport"
+    "transport",
   ]
+  pruneopts = ""
   revision = "41344da2231b913fa3d983840a57a6b1b7b631a1"
   version = "v1.12.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4dda7cbad4146791f07e7e3d3400369924591fb193945918f7fbb90b230fd78c"
+  input-imports = [
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/credentials",
+    "github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds",
+    "github.com/aws/aws-sdk-go/aws/credentials/endpointcreds",
+    "github.com/aws/aws-sdk-go/aws/defaults",
+    "github.com/aws/aws-sdk-go/aws/ec2metadata",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/cloudwatchlogs",
+    "github.com/aws/aws-sdk-go/service/sts",
+    "github.com/grafana/grafana/pkg/components/simplejson",
+    "github.com/grafana/grafana_plugin_model/go/datasource",
+    "github.com/hashicorp/go-plugin",
+    "golang.org/x/net/context",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
