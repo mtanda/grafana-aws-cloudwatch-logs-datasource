@@ -1,4 +1,4 @@
-import { QueryCtrl } from 'app/plugins/sdk';
+import { QueryCtrl } from 'grafana/app/plugins/sdk';
 
 export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
   scope: any;

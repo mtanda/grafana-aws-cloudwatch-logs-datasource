@@ -60,7 +60,7 @@ export class AwsCloudWatchLogsDatasource {
         queries: options.data.targets,
       }
     }).then(result => {
-      let res = [];
+      let res: any = [];
       _.forEach(result.data.results, r => {
         if (!_.isEmpty(r.series)) {
           _.forEach(r.series, s => {
