@@ -28,7 +28,7 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
         region: this.templateSrv.replace(region),
         logGroupNamePrefix: query
       }).then(data => {
-        callback(data.map(d => { return d.value; }))
+        callback(data.map(d => { return d.value; }));
       });
     };
 
@@ -42,7 +42,7 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
         logGroupName: this.target.logGroupName,
         logStreamNamePrefix: query
       }).then(data => {
-        callback(data.map(d => { return d.value; }))
+        callback(data.map(d => { return d.value; }));
       });
     };
   }

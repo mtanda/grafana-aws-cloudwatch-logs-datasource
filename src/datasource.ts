@@ -65,14 +65,14 @@ export class AwsCloudWatchLogsDatasource {
         if (!_.isEmpty(r.series)) {
           _.forEach(r.series, s => {
             res.push({ target: s.name, datapoints: s.points });
-          })
+          });
         }
         if (!_.isEmpty(r.tables)) {
           _.forEach(r.tables, t => {
             res.push(this.expandMessageField(t));
-          })
+          });
         }
-      })
+      });
 
       result.data = res;
       return result;
@@ -129,7 +129,7 @@ export class AwsCloudWatchLogsDatasource {
         // ignore error
       }
       return messageJson;
-    })
+    });
     _.each(messages.slice(0, 100), (message) => {
       let flattened = flatten(message, null);
       for (let propName in flattened) {
