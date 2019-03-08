@@ -1,8 +1,19 @@
 import _ from "lodash";
-import TableModel from 'app/core/table_model';
-import flatten from 'app/core/utils/flatten';
+import TableModel from 'grafana/app/core/table_model';
+import flatten from 'grafana/app/core/utils/flatten';
 
 export class AwsCloudWatchLogsDatasource {
+  type: string;
+  url: string;
+  name: string;
+  id: string;
+  defaultRegion: string;
+  q: any;
+  $q: any;
+  backendSrv: any;
+  templateSrv: any;
+  timeSrv: any;
+
   constructor(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;

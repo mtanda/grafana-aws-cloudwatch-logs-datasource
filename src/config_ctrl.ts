@@ -1,6 +1,13 @@
 import _ from 'lodash';
 
 export class AwsCloudWatchLogsDatasourceConfigCtrl {
+  current: any;
+  accessKeyExist: any;
+  secretKeyExist: any;
+  datasourceSrv: any;
+  authTypes: any;
+  static templateUrl = 'partials/config.html';
+
   /** @ngInject */
   constructor($scope, datasourceSrv) {
     this.current.jsonData.authType = this.current.jsonData.authType || 'credentials';
@@ -23,5 +30,3 @@ export class AwsCloudWatchLogsDatasourceConfigCtrl {
     this.secretKeyExist = false;
   }
 }
-
-AwsCloudWatchLogsDatasourceConfigCtrl.templateUrl = 'partials/config.html';

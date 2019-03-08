@@ -1,6 +1,16 @@
 import { QueryCtrl } from 'app/plugins/sdk';
 
 export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
+  scope: any;
+  target: any;
+  panelCtrl: any;
+  templateSrv: any;
+  datasource: any;
+  defaultRegion: string;
+  suggestLogGroupName: any;
+  suggestLogStreamName: any;
+  static templateUrl = 'partials/query.editor.html';
+
   constructor($scope, $injector, templateSrv) {
     super($scope, $injector);
 
@@ -41,5 +51,3 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
     this.panelCtrl.refresh();
   }
 }
-
-AwsCloudWatchLogsDatasourceQueryCtrl.templateUrl = 'partials/query.editor.html';
