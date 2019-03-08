@@ -81,15 +81,27 @@ export class AwsCloudWatchLogsDatasource {
 
   buildQueryParameters(options) {
     let targets = _.map(options.targets, target => {
-      let input = {
-        logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-        logStreamNames: target.logStreamNames.filter(n => { return n !== ""; }).map(n => { return this.templateSrv.replace(n, options.scopedVars); }),
-        filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
-        interleaved: false
-      };
-      if (input.logStreamNames.length === 0) {
-        delete input.logStreamNames;
+      let input: any = {};
+      let inputInsightsStartQuery: any = {};
+      if (!target.useInsights) {
+        input = {
+          logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
+          logStreamNames: target.logStreamNames.filter(n => { return n !== ""; }).map(n => { return this.templateSrv.replace(n, options.scopedVars); }),
+          filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
+          limit: target.limit,
+          interleaved: false
+        };
+        if (input.logStreamNames.length === 0) {
+          delete input.logStreamNames;
+        }
+      } else {
+        inputInsightsStartQuery = {
+          logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
+          queryString: this.templateSrv.replace(target.filterPattern, options.scopedVars),
+          limit: target.limit,
+        };
       }
+
       return {
         refId: target.refId,
         hide: target.hide,
@@ -97,7 +109,9 @@ export class AwsCloudWatchLogsDatasource {
         queryType: 'timeSeriesQuery',
         format: target.type || 'timeserie',
         region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
-        input: input
+        useInsights: target.useInsights,
+        input: input,
+        inputInsightsStartQuery: inputInsightsStartQuery
       };
     });
 

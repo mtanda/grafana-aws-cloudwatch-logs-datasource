@@ -22,11 +22,15 @@ type AwsCloudWatchLogsDatasource struct {
 }
 
 type Target struct {
-	RefId     string
-	QueryType string
-	Format    string
-	Region    string
-	Input     cloudwatchlogs.FilterLogEventsInput
+	RefId                   string
+	QueryType               string
+	Format                  string
+	Region                  string
+	UseInsights             bool
+	Input                   cloudwatchlogs.FilterLogEventsInput
+	InputInsightsStartQuery cloudwatchlogs.StartQueryInput
+	BytesLimit              int
+	RecordsLimit            int
 }
 
 func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
@@ -116,24 +120,79 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 		}
 		target.Input.StartTime = aws.Int64(fromRaw)
 		target.Input.EndTime = aws.Int64(toRaw)
+		target.InputInsightsStartQuery.StartTime = aws.Int64(fromRaw)
+		target.InputInsightsStartQuery.EndTime = aws.Int64(toRaw)
 		targets = append(targets, target)
 	}
 
 	for _, target := range targets {
-		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input)
-		if err != nil {
-			return nil, err
-		}
-
-		switch target.Format {
-		case "timeserie":
-			return nil, fmt.Errorf("not supported")
-		case "table":
-			r, err := parseTableResponse(resp, target.RefId)
+		resp := &cloudwatchlogs.FilterLogEventsOutput{}
+		if !target.UseInsights {
+			resp, err = t.getLogEvent(tsdbReq, target.Region, &target.Input)
 			if err != nil {
 				return nil, err
 			}
-			response.Results = append(response.Results, r)
+
+			switch target.Format {
+			case "timeserie":
+				return nil, fmt.Errorf("not supported")
+			case "table":
+				r, err := parseTableResponse(resp, target.RefId)
+				if err != nil {
+					return nil, err
+				}
+				response.Results = append(response.Results, r)
+			}
+		} else {
+			svc, err := t.getClient(tsdbReq.Datasource, target.Region)
+			if err != nil {
+				return nil, err
+			}
+			sresp := &cloudwatchlogs.StartQueryOutput{}
+			sresp, err = svc.StartQuery(&target.InputInsightsStartQuery)
+			if err != nil {
+				return nil, err
+			}
+			ginput := &cloudwatchlogs.GetQueryResultsInput{
+				QueryId: sresp.QueryId,
+			}
+			gresp := &cloudwatchlogs.GetQueryResultsOutput{}
+			for {
+				gresp, err = svc.GetQueryResults(ginput)
+				if err != nil {
+					return nil, err
+				}
+				if *gresp.Status == "Complete" || *gresp.Status == "Failed" || *gresp.Status == "Unknown" {
+					break
+				}
+				time.Sleep(1 * time.Second)
+			}
+			einput := &cloudwatchlogs.StopQueryInput{
+				QueryId: sresp.QueryId,
+			}
+			_, err = svc.StopQuery(einput)
+			if err != nil {
+				// ignore error
+				//return nil, err
+			}
+
+			table := &datasource.Table{}
+
+			for _, f := range gresp.Results[0] {
+				table.Columns = append(table.Columns, &datasource.TableColumn{Name: *f.Field})
+			}
+			for _, r := range gresp.Results {
+				row := &datasource.TableRow{}
+				for _, f := range r {
+					row.Values = append(row.Values, &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: *f.Value})
+				}
+				table.Rows = append(table.Rows, row)
+			}
+
+			response.Results = append(response.Results, &datasource.QueryResult{
+				RefId:  target.RefId,
+				Tables: []*datasource.Table{table},
+			})
 		}
 	}
 
