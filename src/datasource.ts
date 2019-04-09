@@ -26,7 +26,7 @@ export class AwsCloudWatchLogsDatasource {
     this.timeSrv = timeSrv;
   }
 
-  query(options) {
+  async query(options) {
     let query = this.buildQueryParameters(options);
     query.targets = query.targets.filter(t => !t.hide);
 
@@ -34,7 +34,7 @@ export class AwsCloudWatchLogsDatasource {
       return this.q.when({ data: [] });
     }
 
-    return this.doRequest({
+    return await this.doRequest({
       data: query
     });
   }
@@ -50,33 +50,83 @@ export class AwsCloudWatchLogsDatasource {
     });
   }
 
-  doRequest(options) {
-    return this.backendSrv.datasourceRequest({
-      url: '/api/tsdb/query',
-      method: 'POST',
-      data: {
-        from: options.data.range.from.valueOf().toString(),
-        to: options.data.range.to.valueOf().toString(),
-        queries: options.data.targets,
+  async doRequest(options) {
+    const results = await Promise.all(options.data.targets.map(async (target) => {
+      if (!target.useInsights) {
+        return await this.backendSrv.datasourceRequest({
+          url: '/api/tsdb/query',
+          method: 'POST',
+          data: {
+            from: options.data.range.from.valueOf().toString(),
+            to: options.data.range.to.valueOf().toString(),
+            queries: [target],
+          }
+        });
+      } else {
+        const startResult = await this.backendSrv.datasourceRequest({
+          url: '/api/tsdb/query',
+          method: 'POST',
+          data: {
+            from: options.data.range.from.valueOf().toString(),
+            to: options.data.range.to.valueOf().toString(),
+            queries: [target],
+          }
+        });
+        const queryId = startResult.data.results[target.refId].meta.QueryId;
+        target.queryId = queryId;
+        let queryResult;
+        for (let i = 0; i < 60; i++) {
+          queryResult = await this.backendSrv.datasourceRequest({
+            url: '/api/tsdb/query',
+            method: 'POST',
+            data: {
+              from: options.data.range.from.valueOf().toString(),
+              to: options.data.range.to.valueOf().toString(),
+              queries: [target],
+            }
+          });
+          const status = queryResult.data.results[target.refId].meta.Status;
+          if (status === 'Complete') {
+            break;
+          } else if (_.includes(['Failed', 'Cancelled'], status)) {
+            throw 'insights query failed';
+          } else {
+            await this.delay(1000);
+            continue; // in progress
+          }
+        }
+        return queryResult;
       }
-    }).then(result => {
-      let res: any = [];
-      _.forEach(result.data.results, r => {
-        if (!_.isEmpty(r.series)) {
-          _.forEach(r.series, s => {
-            res.push({ target: s.name, datapoints: s.points });
-          });
-        }
-        if (!_.isEmpty(r.tables)) {
-          _.forEach(r.tables, t => {
-            res.push(this.expandMessageField(t));
-          });
-        }
-      });
+    }));
 
-      result.data = res;
-      return result;
-    });
+    const resultsMap = {};
+    _.each(results, (result: any) => {
+      _.each(result.data.results, (r) => {
+        resultsMap[r.refId] = r;
+      })
+    })
+    let res: any = [];
+    for (const target of options.data.targets) {
+      const r = resultsMap[target.refId];
+      if (!_.isEmpty(r.series)) {
+        _.forEach(r.series, s => {
+          res.push({ target: s.name, datapoints: s.points });
+        });
+      }
+      if (!_.isEmpty(r.tables)) {
+        _.forEach(r.tables, t => {
+          res.push(this.expandMessageField(t));
+        });
+      }
+    }
+
+    return {
+      data: res
+    };
+  }
+
+  delay(msec) {
+    return new Promise(resolve => setTimeout(resolve, msec));
   }
 
   buildQueryParameters(options) {
