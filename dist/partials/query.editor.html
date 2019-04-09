@@ -1,7 +1,8 @@
 <query-editor-row query-ctrl="ctrl" class="aws-cloudwatch-logs-datasource-query-row">
   <div class="gf-form-inline">
     <div class="gf-form max-width-8">
-      <select class="gf-form-input" ng-model="ctrl.target.type" ng-options="f as f for f in ['table', 'timeserie']"></select>
+      <select class="gf-form-input" ng-model="ctrl.target.type"
+        ng-options="f as f for f in ['table', 'timeserie']"></select>
     </div>
 
     <div class="gf-form gf-form--grow">
@@ -12,8 +13,8 @@
   <div class="gf-form-inline">
     <div class="gf-form">
       <label class="gf-form-label width-20">Region</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.region" spellcheck='false' data-min-length=0 data-items=1000
-        ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.region" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
   </div>
@@ -21,8 +22,8 @@
   <div class="gf-form-inline">
     <div class="gf-form">
       <label class="gf-form-label width-20">Log Group Name</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.logGroupName" spellcheck='false' data-min-length=0 data-items=1000
-        ng-model-onblur bs-typeahead="ctrl.suggestLogGroupName" ng-change="ctrl.onChangeInternal()">
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.logGroupName" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur bs-typeahead="ctrl.suggestLogGroupName" ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
   </div>
@@ -30,18 +31,52 @@
   <div class="gf-form-inline">
     <div class="gf-form">
       <label class="gf-form-label width-20">Log Stream Names</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.logStreamNames[0]" spellcheck='false' data-min-length=0 data-items=1000
-        ng-model-onblur bs-typeahead="ctrl.suggestLogStreamName" ng-change="ctrl.onChangeInternal()">
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.logStreamNames[0]" spellcheck='false'
+        data-min-length=0 data-items=1000 ng-model-onblur bs-typeahead="ctrl.suggestLogStreamName"
+        ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
   </div>
 
   <div class="gf-form-inline">
     <div class="gf-form">
-      <label class="gf-form-label width-20">Filter Pattern</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.filterPattern" spellcheck='false' data-min-length=0 data-items=1000
-        ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      <label class="gf-form-label width-20">Filter Pattern (Query)</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.filterPattern" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
+  </div>
+
+  <div class="gf-form-inline">
+    <div class="gf-form">
+      <label class="gf-form-label width-20">Limit</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.limit" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      </input>
+    </div>
+  </div>
+
+  <div class="gf-form-inline">
+    <div class="gf-form">
+      <label class="gf-form-label width-20">Bytes Limit</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.bytesLimit" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      </input>
+    </div>
+  </div>
+
+  <div class="gf-form-inline">
+    <div class="gf-form">
+      <label class="gf-form-label width-20">Records Limit</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.recordsLimit" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      </input>
+    </div>
+  </div>
+
+  <div class="gf-form-inline">
+    <gf-form-switch class="gf-form" label="Use Insights" label-class="width-20" checked="ctrl.target.useInsights"
+      on-change="ctrl.onChangeInternal()">
+    </gf-form-switch>
   </div>
 </query-editor-row>

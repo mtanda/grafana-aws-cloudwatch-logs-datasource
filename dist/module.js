@@ -196,6 +196,145 @@ var _flatten2 = _interopRequireDefault(_flatten);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var __awaiter = undefined && undefined.__awaiter || function (thisArg, _arguments, P, generator) {
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    function step(result) {
+      result.done ? resolve(result.value) : new P(function (resolve) {
+        resolve(result.value);
+      }).then(fulfilled, rejected);
+    }
+
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+};
+
+var __generator = undefined && undefined.__generator || function (thisArg, body) {
+  var _ = {
+    label: 0,
+    sent: function sent() {
+      if (t[0] & 1) throw t[1];
+      return t[1];
+    },
+    trys: [],
+    ops: []
+  },
+      f,
+      y,
+      t,
+      g;
+  return g = {
+    next: verb(0),
+    "throw": verb(1),
+    "return": verb(2)
+  }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+    return this;
+  }), g;
+
+  function verb(n) {
+    return function (v) {
+      return step([n, v]);
+    };
+  }
+
+  function step(op) {
+    if (f) throw new TypeError("Generator is already executing.");
+
+    while (_) {
+      try {
+        if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+        if (y = 0, t) op = [op[0] & 2, t.value];
+
+        switch (op[0]) {
+          case 0:
+          case 1:
+            t = op;
+            break;
+
+          case 4:
+            _.label++;
+            return {
+              value: op[1],
+              done: false
+            };
+
+          case 5:
+            _.label++;
+            y = op[1];
+            op = [0];
+            continue;
+
+          case 7:
+            op = _.ops.pop();
+
+            _.trys.pop();
+
+            continue;
+
+          default:
+            if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+              _ = 0;
+              continue;
+            }
+
+            if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+              _.label = op[1];
+              break;
+            }
+
+            if (op[0] === 6 && _.label < t[1]) {
+              _.label = t[1];
+              t = op;
+              break;
+            }
+
+            if (t && _.label < t[2]) {
+              _.label = t[2];
+
+              _.ops.push(op);
+
+              break;
+            }
+
+            if (t[2]) _.ops.pop();
+
+            _.trys.pop();
+
+            continue;
+        }
+
+        op = body.call(thisArg, _);
+      } catch (e) {
+        op = [6, e];
+        y = 0;
+      } finally {
+        f = t = 0;
+      }
+    }
+
+    if (op[0] & 5) throw op[1];
+    return {
+      value: op[0] ? op[1] : void 0,
+      done: true
+    };
+  }
+};
+
 var AwsCloudWatchLogsDatasource =
 /** @class */
 function () {
@@ -212,19 +351,36 @@ function () {
   }
 
   AwsCloudWatchLogsDatasource.prototype.query = function (options) {
-    var query = this.buildQueryParameters(options);
-    query.targets = query.targets.filter(function (t) {
-      return !t.hide;
-    });
+    return __awaiter(this, void 0, void 0, function () {
+      var query;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            query = this.buildQueryParameters(options);
+            query.targets = query.targets.filter(function (t) {
+              return !t.hide;
+            });
 
-    if (query.targets.length <= 0) {
-      return this.q.when({
-        data: []
+            if (query.targets.length <= 0) {
+              return [2
+              /*return*/
+              , this.q.when({
+                data: []
+              })];
+            }
+
+            return [4
+            /*yield*/
+            , this.doRequest({
+              data: query
+            })];
+
+          case 1:
+            return [2
+            /*return*/
+            , _a.sent()];
+        }
       });
-    }
-
-    return this.doRequest({
-      data: query
     });
   };
 
@@ -250,38 +406,168 @@ function () {
   };
 
   AwsCloudWatchLogsDatasource.prototype.doRequest = function (options) {
-    var _this = this;
+    return __awaiter(this, void 0, void 0, function () {
+      var results, resultsMap, res, _i, _a, target, r;
 
-    return this.backendSrv.datasourceRequest({
-      url: '/api/tsdb/query',
-      method: 'POST',
-      data: {
-        from: options.data.range.from.valueOf().toString(),
-        to: options.data.range.to.valueOf().toString(),
-        queries: options.data.targets
-      }
-    }).then(function (result) {
-      var res = [];
+      var _this = this;
 
-      _lodash2.default.forEach(result.data.results, function (r) {
-        if (!_lodash2.default.isEmpty(r.series)) {
-          _lodash2.default.forEach(r.series, function (s) {
-            res.push({
-              target: s.name,
-              datapoints: s.points
+      return __generator(this, function (_b) {
+        switch (_b.label) {
+          case 0:
+            return [4
+            /*yield*/
+            , Promise.all(options.data.targets.map(function (target) {
+              return __awaiter(_this, void 0, void 0, function () {
+                var startResult, queryId, queryResult, i, status_1;
+                return __generator(this, function (_a) {
+                  switch (_a.label) {
+                    case 0:
+                      if (!!target.useInsights) return [3
+                      /*break*/
+                      , 2];
+                      return [4
+                      /*yield*/
+                      , this.backendSrv.datasourceRequest({
+                        url: '/api/tsdb/query',
+                        method: 'POST',
+                        data: {
+                          from: options.data.range.from.valueOf().toString(),
+                          to: options.data.range.to.valueOf().toString(),
+                          queries: [target]
+                        }
+                      })];
+
+                    case 1:
+                      return [2
+                      /*return*/
+                      , _a.sent()];
+
+                    case 2:
+                      return [4
+                      /*yield*/
+                      , this.backendSrv.datasourceRequest({
+                        url: '/api/tsdb/query',
+                        method: 'POST',
+                        data: {
+                          from: options.data.range.from.valueOf().toString(),
+                          to: options.data.range.to.valueOf().toString(),
+                          queries: [target]
+                        }
+                      })];
+
+                    case 3:
+                      startResult = _a.sent();
+                      queryId = startResult.data.results[target.refId].meta.QueryId;
+                      target.queryId = queryId;
+                      queryResult = void 0;
+                      i = 0;
+                      _a.label = 4;
+
+                    case 4:
+                      if (!(i < 60)) return [3
+                      /*break*/
+                      , 10];
+                      return [4
+                      /*yield*/
+                      , this.backendSrv.datasourceRequest({
+                        url: '/api/tsdb/query',
+                        method: 'POST',
+                        data: {
+                          from: options.data.range.from.valueOf().toString(),
+                          to: options.data.range.to.valueOf().toString(),
+                          queries: [target]
+                        }
+                      })];
+
+                    case 5:
+                      queryResult = _a.sent();
+                      status_1 = queryResult.data.results[target.refId].meta.Status;
+                      if (!(status_1 === 'Complete')) return [3
+                      /*break*/
+                      , 6];
+                      return [3
+                      /*break*/
+                      , 10];
+
+                    case 6:
+                      if (!_lodash2.default.includes(['Failed', 'Cancelled'], status_1)) return [3
+                      /*break*/
+                      , 7];
+                      throw 'insights query failed';
+
+                    case 7:
+                      return [4
+                      /*yield*/
+                      , this.delay(1000)];
+
+                    case 8:
+                      _a.sent();
+
+                      return [3
+                      /*break*/
+                      , 9];
+                    // in progress
+
+                    case 9:
+                      i++;
+                      return [3
+                      /*break*/
+                      , 4];
+
+                    case 10:
+                      return [2
+                      /*return*/
+                      , queryResult];
+                  }
+                });
+              });
+            }))];
+
+          case 1:
+            results = _b.sent();
+            resultsMap = {};
+
+            _lodash2.default.each(results, function (result) {
+              _lodash2.default.each(result.data.results, function (r) {
+                resultsMap[r.refId] = r;
+              });
             });
-          });
-        }
 
-        if (!_lodash2.default.isEmpty(r.tables)) {
-          _lodash2.default.forEach(r.tables, function (t) {
-            res.push(_this.expandMessageField(t));
-          });
+            res = [];
+
+            for (_i = 0, _a = options.data.targets; _i < _a.length; _i++) {
+              target = _a[_i];
+              r = resultsMap[target.refId];
+
+              if (!_lodash2.default.isEmpty(r.series)) {
+                _lodash2.default.forEach(r.series, function (s) {
+                  res.push({
+                    target: s.name,
+                    datapoints: s.points
+                  });
+                });
+              }
+
+              if (!_lodash2.default.isEmpty(r.tables)) {
+                _lodash2.default.forEach(r.tables, function (t) {
+                  res.push(_this.expandMessageField(t));
+                });
+              }
+            }
+
+            return [2
+            /*return*/
+            , {
+              data: res
+            }];
         }
       });
+    });
+  };
 
-      result.data = res;
-      return result;
+  AwsCloudWatchLogsDatasource.prototype.delay = function (msec) {
+    return new Promise(function (resolve) {
+      return setTimeout(resolve, msec);
     });
   };
 
@@ -289,19 +575,31 @@ function () {
     var _this = this;
 
     var targets = _lodash2.default.map(options.targets, function (target) {
-      var input = {
-        logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
-        logStreamNames: target.logStreamNames.filter(function (n) {
-          return n !== "";
-        }).map(function (n) {
-          return _this.templateSrv.replace(n, options.scopedVars);
-        }),
-        filterPattern: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
-        interleaved: false
-      };
+      var input = {};
+      var inputInsightsStartQuery = {};
 
-      if (input.logStreamNames.length === 0) {
-        delete input.logStreamNames;
+      if (!target.useInsights) {
+        input = {
+          logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
+          logStreamNames: target.logStreamNames.filter(function (n) {
+            return n !== "";
+          }).map(function (n) {
+            return _this.templateSrv.replace(n, options.scopedVars);
+          }),
+          filterPattern: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
+          limit: target.limit,
+          interleaved: false
+        };
+
+        if (input.logStreamNames.length === 0) {
+          delete input.logStreamNames;
+        }
+      } else {
+        inputInsightsStartQuery = {
+          logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
+          queryString: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
+          limit: target.limit
+        };
       }
 
       return {
@@ -311,7 +609,9 @@ function () {
         queryType: 'timeSeriesQuery',
         format: target.type || 'timeserie',
         region: _this.templateSrv.replace(target.region, options.scopedVars) || _this.defaultRegion,
-        input: input
+        useInsights: target.useInsights,
+        input: input,
+        inputInsightsStartQuery: inputInsightsStartQuery
       };
     });
 
@@ -599,6 +899,7 @@ function (_super) {
     _this.target.logGroupName = _this.target.logGroupName || '';
     _this.target.logStreamNames = _this.target.logStreamNames || [];
     _this.target.filterPattern = _this.target.filterPattern || '';
+    _this.target.limit = _this.target.limit || 10000;
     _this.templateSrv = templateSrv;
 
     _this.suggestLogGroupName = function (query, callback) {
