@@ -22,11 +22,17 @@ type AwsCloudWatchLogsDatasource struct {
 }
 
 type Target struct {
-	RefId     string
-	QueryType string
-	Format    string
-	Region    string
-	Input     cloudwatchlogs.FilterLogEventsInput
+	RefId                   string
+	QueryType               string
+	Format                  string
+	Region                  string
+	UseInsights             bool
+	Input                   cloudwatchlogs.FilterLogEventsInput
+	InputInsightsStartQuery cloudwatchlogs.StartQueryInput
+	InputInsightsQueryId    string
+	QueryId                 string
+	BytesLimit              int
+	RecordsLimit            int
 }
 
 func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
@@ -83,18 +89,42 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 		}, nil
 	}
 
-	response, err := t.handleQuery(tsdbReq)
-	if err != nil {
-		return &datasource.DatasourceResponse{
-			Results: []*datasource.QueryResult{
-				&datasource.QueryResult{
-					Error: err.Error(),
-				},
-			},
-		}, nil
+	includeInsightsQuery := false
+	for _, query := range tsdbReq.Queries {
+		target := Target{}
+		if err := json.Unmarshal([]byte(query.ModelJson), &target); err != nil {
+			return nil, err
+		}
+		includeInsightsQuery = includeInsightsQuery || target.UseInsights
 	}
-
-	return response, nil
+	if !includeInsightsQuery {
+		response, err := t.handleQuery(tsdbReq)
+		if err != nil {
+			return &datasource.DatasourceResponse{
+				Results: []*datasource.QueryResult{
+					&datasource.QueryResult{
+						Error: err.Error(),
+					},
+				},
+			}, nil
+		}
+		return response, nil
+	} else {
+		if len(tsdbReq.Queries) != 1 {
+			return nil, fmt.Errorf("invalid insights query, it should be single")
+		}
+		response, err := t.handleInsightsQuery(tsdbReq, tsdbReq.Queries[0])
+		if err != nil {
+			return &datasource.DatasourceResponse{
+				Results: []*datasource.QueryResult{
+					&datasource.QueryResult{
+						Error: err.Error(),
+					},
+				},
+			}, nil
+		}
+		return response, nil
+	}
 }
 
 func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
@@ -136,6 +166,120 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 			response.Results = append(response.Results, r)
 		}
 	}
+
+	return response, nil
+}
+
+func (t *AwsCloudWatchLogsDatasource) handleInsightsQuery(tsdbReq *datasource.DatasourceRequest, query *datasource.Query) (*datasource.DatasourceResponse, error) {
+	response := &datasource.DatasourceResponse{}
+
+	fromRaw, err := strconv.ParseInt(tsdbReq.TimeRange.FromRaw, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	toRaw, err := strconv.ParseInt(tsdbReq.TimeRange.ToRaw, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	target := Target{}
+	if err := json.Unmarshal([]byte(query.ModelJson), &target); err != nil {
+		return nil, err
+	}
+	target.InputInsightsStartQuery.StartTime = aws.Int64(fromRaw)
+	target.InputInsightsStartQuery.EndTime = aws.Int64(toRaw)
+
+	if target.Format == "timeserie" {
+		return nil, fmt.Errorf("not supported")
+	}
+
+	svc, err := t.getClient(tsdbReq.Datasource, target.Region)
+	if err != nil {
+		return nil, err
+	}
+
+	// start query
+	if target.QueryId == "" {
+		sresp, err := svc.StartQuery(&target.InputInsightsStartQuery)
+		if err != nil {
+			return nil, err
+		}
+
+		queryIdJson, err := json.Marshal(map[string]string{"QueryId": *sresp.QueryId})
+		if err != nil {
+			return nil, err
+		}
+		return &datasource.DatasourceResponse{
+			Results: []*datasource.QueryResult{
+				&datasource.QueryResult{
+					RefId:    target.RefId,
+					MetaJson: string(queryIdJson),
+				},
+			},
+		}, nil
+	}
+
+	dresp, err := svc.DescribeQueries(&cloudwatchlogs.DescribeQueriesInput{LogGroupName: target.InputInsightsStartQuery.LogGroupName})
+	if err != nil {
+		return nil, err
+	}
+	queryIndex := -1
+	for i, query := range dresp.Queries {
+		if *query.QueryId == target.QueryId {
+			queryIndex = i
+		}
+	}
+	if queryIndex == -1 {
+		return nil, fmt.Errorf("%s is not found", target.QueryId)
+	}
+	if *dresp.Queries[queryIndex].Status != "Complete" {
+		queryIdJson, err := json.Marshal(map[string]string{"QueryId": target.QueryId, "Status": *dresp.Queries[queryIndex].Status})
+		if err != nil {
+			return nil, err
+		}
+		return &datasource.DatasourceResponse{
+			Results: []*datasource.QueryResult{
+				&datasource.QueryResult{
+					RefId:    target.RefId,
+					MetaJson: string(queryIdJson),
+				},
+			},
+		}, nil
+	}
+
+	gresp, err := svc.GetQueryResults(&cloudwatchlogs.GetQueryResultsInput{QueryId: aws.String(target.QueryId)})
+	if err != nil {
+		return nil, err
+	}
+	if *gresp.Status != "Complete" {
+		return nil, fmt.Errorf("unexpected status")
+	}
+
+	_, err = svc.StopQuery(&cloudwatchlogs.StopQueryInput{QueryId: aws.String(target.QueryId)})
+	if err != nil {
+		// ignore error
+	}
+
+	table := &datasource.Table{}
+	for _, f := range gresp.Results[0] {
+		table.Columns = append(table.Columns, &datasource.TableColumn{Name: *f.Field})
+	}
+	for _, r := range gresp.Results {
+		row := &datasource.TableRow{}
+		for _, f := range r {
+			row.Values = append(row.Values, &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: *f.Value})
+		}
+		table.Rows = append(table.Rows, row)
+	}
+
+	queryIdJson, err := json.Marshal(map[string]string{"QueryId": target.QueryId, "Status": *gresp.Status})
+	if err != nil {
+		return nil, err
+	}
+	response.Results = append(response.Results, &datasource.QueryResult{
+		RefId:    target.RefId,
+		Tables:   []*datasource.Table{table},
+		MetaJson: string(queryIdJson),
+	})
 
 	return response, nil
 }
