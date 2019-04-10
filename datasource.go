@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -31,6 +33,17 @@ type Target struct {
 	InputInsightsStartQuery cloudwatchlogs.StartQueryInput
 	InputInsightsQueryId    string
 	QueryId                 string
+	LegendFormat            string
+	TimestampColumn         string
+	ValueColumn             string
+}
+
+var (
+	legendFormatPattern *regexp.Regexp
+)
+
+func init() {
+	legendFormatPattern = regexp.MustCompile(`\{\{\s*(.+?)\s*\}\}`)
 }
 
 func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {
@@ -186,10 +199,6 @@ func (t *AwsCloudWatchLogsDatasource) handleInsightsQuery(tsdbReq *datasource.Da
 	target.InputInsightsStartQuery.StartTime = aws.Int64(fromRaw)
 	target.InputInsightsStartQuery.EndTime = aws.Int64(toRaw)
 
-	if target.Format == "timeserie" {
-		return nil, fmt.Errorf("not supported")
-	}
-
 	svc, err := t.getClient(tsdbReq.Datasource, target.Region)
 	if err != nil {
 		return nil, err
@@ -257,27 +266,93 @@ func (t *AwsCloudWatchLogsDatasource) handleInsightsQuery(tsdbReq *datasource.Da
 		// ignore error
 	}
 
-	table := &datasource.Table{}
-	for _, f := range gresp.Results[0] {
-		table.Columns = append(table.Columns, &datasource.TableColumn{Name: *f.Field})
-	}
-	for _, r := range gresp.Results {
-		row := &datasource.TableRow{}
-		for _, f := range r {
-			row.Values = append(row.Values, &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: *f.Value})
-		}
-		table.Rows = append(table.Rows, row)
-	}
-
 	queryIdJson, err := json.Marshal(map[string]string{"QueryId": target.QueryId, "Status": *gresp.Status})
 	if err != nil {
 		return nil, err
 	}
-	response.Results = append(response.Results, &datasource.QueryResult{
-		RefId:    target.RefId,
-		Tables:   []*datasource.Table{table},
-		MetaJson: string(queryIdJson),
-	})
+	if len(gresp.Results) == 0 {
+		return &datasource.DatasourceResponse{
+			Results: []*datasource.QueryResult{
+				&datasource.QueryResult{
+					RefId:    target.RefId,
+					MetaJson: string(queryIdJson),
+				},
+			},
+		}, nil
+	}
+
+	if target.Format == "timeserie" {
+		series := make(map[string]*datasource.TimeSeries)
+
+		for _, r := range gresp.Results {
+			var t time.Time
+			var timestamp int64
+			var value float64
+			var err error
+
+			kv := make(map[string]string)
+			for _, d := range r {
+				columnName := *d.Field
+				switch columnName {
+				case target.TimestampColumn:
+					t, err = time.Parse("2006-01-02 15:04:05.000", *d.Value)
+					if err != nil {
+						return nil, err
+					}
+					timestamp = t.Unix() * 1000
+				case target.ValueColumn:
+					value, err = strconv.ParseFloat(*d.Value, 64)
+					if err != nil {
+						return nil, err
+					}
+				default:
+					kv[columnName] = *d.Value
+				}
+			}
+
+			name := formatLegend(kv, target.LegendFormat)
+			if (series[name]) == nil {
+				series[name] = &datasource.TimeSeries{
+					Name: name,
+					Tags: kv,
+				}
+			}
+
+			series[name].Points = append(series[name].Points, &datasource.Point{
+				Timestamp: timestamp,
+				Value:     value,
+			})
+		}
+
+		s := make([]*datasource.TimeSeries, 0)
+		for _, ss := range series {
+			s = append(s, ss)
+		}
+
+		response.Results = append(response.Results, &datasource.QueryResult{
+			RefId:    target.RefId,
+			Series:   s,
+			MetaJson: string(queryIdJson),
+		})
+	} else {
+		table := &datasource.Table{}
+		for _, f := range gresp.Results[0] {
+			table.Columns = append(table.Columns, &datasource.TableColumn{Name: *f.Field})
+		}
+		for _, r := range gresp.Results {
+			row := &datasource.TableRow{}
+			for _, f := range r {
+				row.Values = append(row.Values, &datasource.RowValue{Kind: datasource.RowValue_TYPE_STRING, StringValue: *f.Value})
+			}
+			table.Rows = append(table.Rows, row)
+		}
+
+		response.Results = append(response.Results, &datasource.QueryResult{
+			RefId:    target.RefId,
+			Tables:   []*datasource.Table{table},
+			MetaJson: string(queryIdJson),
+		})
+	}
 
 	return response, nil
 }
@@ -352,6 +427,29 @@ func parseTableResponse(resp *cloudwatchlogs.FilterLogEventsOutput, refId string
 		RefId:  refId,
 		Tables: []*datasource.Table{table},
 	}, nil
+}
+
+func formatLegend(kv map[string]string, legendFormat string) string {
+	if legendFormat == "" {
+		l := make([]string, 0)
+		for k, v := range kv {
+			l = append(l, fmt.Sprintf("%s=\"%s\"", k, v))
+		}
+		return "{" + strings.Join(l, ",") + "}"
+	}
+
+	result := legendFormatPattern.ReplaceAllFunc([]byte(legendFormat), func(in []byte) []byte {
+		columnName := strings.Replace(string(in), "{{", "", 1)
+		columnName = strings.Replace(columnName, "}}", "", 1)
+		columnName = strings.TrimSpace(columnName)
+		if val, exists := kv[columnName]; exists {
+			return []byte(val)
+		}
+
+		return in
+	})
+
+	return string(result)
 }
 
 type suggestData struct {

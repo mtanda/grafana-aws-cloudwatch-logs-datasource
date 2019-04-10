@@ -56,19 +56,28 @@
     </div>
   </div>
 
-  <div class="gf-form-inline">
+  <div class="gf-form-inline" ng-if="ctrl.target.type === 'timeserie'">
     <div class="gf-form">
-      <label class="gf-form-label width-20">Bytes Limit</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.bytesLimit" spellcheck='false' data-min-length=0
+      <label class="gf-form-label width-20">Legend Format</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.legendFormat" spellcheck='false' data-min-length=0
         data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
   </div>
 
-  <div class="gf-form-inline">
+  <div class="gf-form-inline" ng-if="ctrl.target.type === 'timeserie'">
     <div class="gf-form">
-      <label class="gf-form-label width-20">Records Limit</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.recordsLimit" spellcheck='false' data-min-length=0
+      <label class="gf-form-label width-20">Timestamp Column</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.timestampColumn" spellcheck='false'
+        data-min-length=0 data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      </input>
+    </div>
+  </div>
+
+  <div class="gf-form-inline" ng-if="ctrl.target.type === 'timeserie'">
+    <div class="gf-form">
+      <label class="gf-form-label width-20">Value Column</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.valueColumn" spellcheck='false' data-min-length=0
         data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
       </input>
     </div>
