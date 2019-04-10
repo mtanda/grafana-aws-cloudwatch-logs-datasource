@@ -160,6 +160,9 @@ export class AwsCloudWatchLogsDatasource {
         format: target.type || 'timeserie',
         region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
         useInsights: target.useInsights,
+        legendFormat: target.legendFormat,
+        timestampColumn: target.timestampColumn,
+        valueColumn: target.valueColumn,
         input: input,
         inputInsightsStartQuery: inputInsightsStartQuery
       };

@@ -21,6 +21,9 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
     this.target.logStreamNames = this.target.logStreamNames || [];
     this.target.filterPattern = this.target.filterPattern || '';
     this.target.limit = this.target.limit || 10000;
+    this.target.legendFormat = this.target.legendFormat || '';
+    this.target.timestampColumn = this.target.timestampColumn || '';
+    this.target.valueColumn = this.target.valueColumn || '';
     this.templateSrv = templateSrv;
 
     this.suggestLogGroupName = (query, callback) => {
