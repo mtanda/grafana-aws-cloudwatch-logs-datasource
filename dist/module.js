@@ -610,6 +610,9 @@ function () {
         format: target.type || 'timeserie',
         region: _this.templateSrv.replace(target.region, options.scopedVars) || _this.defaultRegion,
         useInsights: target.useInsights,
+        legendFormat: target.legendFormat,
+        timestampColumn: target.timestampColumn,
+        valueColumn: target.valueColumn,
         input: input,
         inputInsightsStartQuery: inputInsightsStartQuery
       };
@@ -900,6 +903,9 @@ function (_super) {
     _this.target.logStreamNames = _this.target.logStreamNames || [];
     _this.target.filterPattern = _this.target.filterPattern || '';
     _this.target.limit = _this.target.limit || 10000;
+    _this.target.legendFormat = _this.target.legendFormat || '';
+    _this.target.timestampColumn = _this.target.timestampColumn || '';
+    _this.target.valueColumn = _this.target.valueColumn || '';
     _this.templateSrv = templateSrv;
 
     _this.suggestLogGroupName = function (query, callback) {
