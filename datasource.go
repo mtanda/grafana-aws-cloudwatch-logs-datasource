@@ -31,8 +31,6 @@ type Target struct {
 	InputInsightsStartQuery cloudwatchlogs.StartQueryInput
 	InputInsightsQueryId    string
 	QueryId                 string
-	BytesLimit              int
-	RecordsLimit            int
 }
 
 func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *datasource.DatasourceRequest) (*datasource.DatasourceResponse, error) {

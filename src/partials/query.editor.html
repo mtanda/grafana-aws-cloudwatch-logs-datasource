@@ -57,24 +57,6 @@
   </div>
 
   <div class="gf-form-inline">
-    <div class="gf-form">
-      <label class="gf-form-label width-20">Bytes Limit</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.bytesLimit" spellcheck='false' data-min-length=0
-        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
-      </input>
-    </div>
-  </div>
-
-  <div class="gf-form-inline">
-    <div class="gf-form">
-      <label class="gf-form-label width-20">Records Limit</label>
-      <input type="text" class="gf-form-input" ng-model="ctrl.target.recordsLimit" spellcheck='false' data-min-length=0
-        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
-      </input>
-    </div>
-  </div>
-
-  <div class="gf-form-inline">
     <gf-form-switch class="gf-form" label="Use Insights" label-class="width-20" checked="ctrl.target.useInsights"
       on-change="ctrl.onChangeInternal()">
     </gf-form-switch>
