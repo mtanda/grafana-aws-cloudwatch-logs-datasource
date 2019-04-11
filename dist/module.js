@@ -597,7 +597,7 @@ function () {
       } else {
         inputInsightsStartQuery = {
           logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          queryString: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
+          queryString: _this.templateSrv.replace(target.queryString, options.scopedVars),
           limit: target.limit
         };
       }
@@ -607,7 +607,7 @@ function () {
         hide: target.hide,
         datasourceId: _this.id,
         queryType: 'timeSeriesQuery',
-        format: target.type || 'timeserie',
+        format: target.format || 'timeserie',
         region: _this.templateSrv.replace(target.region, options.scopedVars) || _this.defaultRegion,
         useInsights: target.useInsights,
         legendFormat: target.legendFormat,
@@ -897,11 +897,12 @@ function (_super) {
     var _this = _super.call(this, $scope, $injector) || this;
 
     _this.scope = $scope;
-    _this.target.type = _this.target.type || 'timeserie';
+    _this.target.format = _this.target.format || 'table';
     _this.target.region = _this.target.region || '';
     _this.target.logGroupName = _this.target.logGroupName || '';
     _this.target.logStreamNames = _this.target.logStreamNames || [];
     _this.target.filterPattern = _this.target.filterPattern || '';
+    _this.target.queryString = _this.target.queryString || '';
     _this.target.limit = _this.target.limit || 10000;
     _this.target.legendFormat = _this.target.legendFormat || '';
     _this.target.timestampColumn = _this.target.timestampColumn || '';
