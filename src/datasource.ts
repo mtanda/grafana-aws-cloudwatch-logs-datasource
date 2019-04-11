@@ -157,7 +157,7 @@ export class AwsCloudWatchLogsDatasource {
         hide: target.hide,
         datasourceId: this.id,
         queryType: 'timeSeriesQuery',
-        format: target.type || 'timeserie',
+        format: target.format || 'timeserie',
         region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
         useInsights: target.useInsights,
         legendFormat: target.legendFormat,

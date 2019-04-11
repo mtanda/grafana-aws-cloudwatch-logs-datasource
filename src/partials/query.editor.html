@@ -1,7 +1,7 @@
 <query-editor-row query-ctrl="ctrl" class="aws-cloudwatch-logs-datasource-query-row">
   <div class="gf-form-inline">
     <div class="gf-form max-width-8">
-      <select class="gf-form-input" ng-model="ctrl.target.type"
+      <select class="gf-form-input" ng-model="ctrl.target.format"
         ng-options="f as f for f in ['table', 'timeserie']"></select>
     </div>
 
@@ -56,7 +56,7 @@
     </div>
   </div>
 
-  <div class="gf-form-inline" ng-if="ctrl.target.type === 'timeserie'">
+  <div class="gf-form-inline" ng-if="ctrl.target.format === 'timeserie'">
     <div class="gf-form">
       <label class="gf-form-label width-20">Legend Format</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.legendFormat" spellcheck='false' data-min-length=0
@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <div class="gf-form-inline" ng-if="ctrl.target.type === 'timeserie'">
+  <div class="gf-form-inline" ng-if="ctrl.target.format === 'timeserie'">
     <div class="gf-form">
       <label class="gf-form-label width-20">Timestamp Column</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.timestampColumn" spellcheck='false'
@@ -74,7 +74,7 @@
     </div>
   </div>
 
-  <div class="gf-form-inline" ng-if="ctrl.target.type === 'timeserie'">
+  <div class="gf-form-inline" ng-if="ctrl.target.format === 'timeserie'">
     <div class="gf-form">
       <label class="gf-form-label width-20">Value Column</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.valueColumn" spellcheck='false' data-min-length=0

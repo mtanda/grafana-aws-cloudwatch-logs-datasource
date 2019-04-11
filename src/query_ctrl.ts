@@ -15,7 +15,7 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
     super($scope, $injector);
 
     this.scope = $scope;
-    this.target.type = this.target.type || 'timeserie';
+    this.target.format = this.target.format || 'table';
     this.target.region = this.target.region || '';
     this.target.logGroupName = this.target.logGroupName || '';
     this.target.logStreamNames = this.target.logStreamNames || [];
