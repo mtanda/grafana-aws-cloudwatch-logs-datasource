@@ -38,10 +38,19 @@
     </div>
   </div>
 
-  <div class="gf-form-inline">
+  <div class="gf-form-inline" ng-if="!ctrl.target.useInsights">
     <div class="gf-form">
-      <label class="gf-form-label width-20">Filter Pattern (Query)</label>
+      <label class="gf-form-label width-20">Filter Pattern</label>
       <input type="text" class="gf-form-input" ng-model="ctrl.target.filterPattern" spellcheck='false' data-min-length=0
+        data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
+      </input>
+    </div>
+  </div>
+
+  <div class="gf-form-inline" ng-if="ctrl.target.useInsights">
+    <div class="gf-form">
+      <label class="gf-form-label width-20">Query String</label>
+      <input type="text" class="gf-form-input" ng-model="ctrl.target.queryString" spellcheck='false' data-min-length=0
         data-items=1000 ng-model-onblur ng-change="ctrl.onChangeInternal()">
       </input>
     </div>

@@ -147,7 +147,7 @@ export class AwsCloudWatchLogsDatasource {
       } else {
         inputInsightsStartQuery = {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          queryString: this.templateSrv.replace(target.filterPattern, options.scopedVars),
+          queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
           limit: target.limit,
         };
       }
