@@ -136,7 +136,6 @@ export class AwsCloudWatchLogsDatasource {
       if (!target.useInsights) {
         let scVars = target.logStreamNames.filter(n => { return n !== ""; }).map(n => { return this.templateSrv.replace(n, options.scopedVars); });
         scVars = scVars[0].replace(/{|}/g,'').split(",");
-        console.log(scVars);
         
         input = {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),

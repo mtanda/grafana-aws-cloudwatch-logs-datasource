@@ -584,7 +584,6 @@ function () {
           return _this.templateSrv.replace(n, options.scopedVars);
         });
         scVars = scVars[0].replace(/{|}/g, '').split(",");
-        console.log(scVars);
         input = {
           logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
           logStreamNames: scVars,
