@@ -133,7 +133,6 @@ var AwsCloudWatchLogsDatasourceConfigCtrl =
 /** @class */
 function () {
   /** @ngInject */
-  AwsCloudWatchLogsDatasourceConfigCtrl.$inject = ["$scope", "datasourceSrv"];
   function AwsCloudWatchLogsDatasourceConfigCtrl($scope, datasourceSrv) {
     this.current.jsonData.authType = this.current.jsonData.authType || 'credentials';
     this.accessKeyExist = this.current.secureJsonFields.accessKey;
@@ -579,13 +578,16 @@ function () {
       var inputInsightsStartQuery = {};
 
       if (!target.useInsights) {
+        var scVars = target.logStreamNames.filter(function (n) {
+          return n !== "";
+        }).map(function (n) {
+          return _this.templateSrv.replace(n, options.scopedVars);
+        });
+        scVars = scVars[0].replace(/{|}/g, '').split(",");
+        console.log(scVars);
         input = {
           logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          logStreamNames: target.logStreamNames.filter(function (n) {
-            return n !== "";
-          }).map(function (n) {
-            return _this.templateSrv.replace(n, options.scopedVars);
-          }),
+          logStreamNames: scVars,
           filterPattern: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
           limit: target.limit,
           interleaved: false
