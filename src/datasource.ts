@@ -136,7 +136,14 @@ export class AwsCloudWatchLogsDatasource {
       if (!target.useInsights) {
         input = {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          logStreamNames: target.logStreamNames.filter(n => { return n !== ""; }).map(n => { return this.templateSrv.replace(n, options.scopedVars); }),
+          logStreamNames: _.flatten(target.logStreamNames.filter(n => { return n !== ""; }).map(n => {
+            const replaced = this.templateSrv.replace(n, options.scopedVars, 'json');
+            if (n !== replaced) {
+              return JSON.parse(replaced);
+            } else {
+              return n;
+            }
+          })),
           filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
           limit: target.limit,
           interleaved: false
