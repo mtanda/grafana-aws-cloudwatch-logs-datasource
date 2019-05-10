@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { QueryCtrl } from 'grafana/app/plugins/sdk';
 
 export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
@@ -21,7 +22,13 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
     this.target.logStreamNames = this.target.logStreamNames || [];
     this.target.filterPattern = this.target.filterPattern || '';
     this.target.queryString = this.target.queryString || '';
-    this.target.limit = this.target.limit || 10000;
+
+    // backward compatibility
+    if (_.isNumber(this.target.limit)) {
+      this.target.limit = String(this.target.limit);
+    }
+
+    this.target.limit = this.target.limit || '10000';
     this.target.legendFormat = this.target.legendFormat || '';
     this.target.timestampColumn = this.target.timestampColumn || '';
     this.target.valueColumn = this.target.valueColumn || '';

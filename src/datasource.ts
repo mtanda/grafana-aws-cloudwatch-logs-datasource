@@ -133,12 +133,25 @@ export class AwsCloudWatchLogsDatasource {
     let targets = _.map(options.targets, target => {
       let input: any = {};
       let inputInsightsStartQuery: any = {};
+
+      // backward compatibility
+      if (_.isNumber(target.limit)) {
+        target.limit = String(target.limit);
+      }
+
       if (!target.useInsights) {
         input = {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          logStreamNames: target.logStreamNames.filter(n => { return n !== ""; }).map(n => { return this.templateSrv.replace(n, options.scopedVars); }),
+          logStreamNames: _.flatten(target.logStreamNames.filter(n => { return n !== ""; }).map(n => {
+            const replaced = this.templateSrv.replace(n, options.scopedVars, 'json');
+            if (n !== replaced) {
+              return JSON.parse(replaced);
+            } else {
+              return n;
+            }
+          })),
           filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
-          limit: target.limit,
+          limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
           interleaved: false
         };
         if (input.logStreamNames.length === 0) {
@@ -148,7 +161,7 @@ export class AwsCloudWatchLogsDatasource {
         inputInsightsStartQuery = {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
           queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
-          limit: target.limit,
+          limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10)
         };
       }
 

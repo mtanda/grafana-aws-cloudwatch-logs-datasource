@@ -576,18 +576,28 @@ function () {
 
     var targets = _lodash2.default.map(options.targets, function (target) {
       var input = {};
-      var inputInsightsStartQuery = {};
+      var inputInsightsStartQuery = {}; // backward compatibility
+
+      if (_lodash2.default.isNumber(target.limit)) {
+        target.limit = String(target.limit);
+      }
 
       if (!target.useInsights) {
         input = {
           logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          logStreamNames: target.logStreamNames.filter(function (n) {
+          logStreamNames: _lodash2.default.flatten(target.logStreamNames.filter(function (n) {
             return n !== "";
           }).map(function (n) {
-            return _this.templateSrv.replace(n, options.scopedVars);
-          }),
+            var replaced = _this.templateSrv.replace(n, options.scopedVars, 'json');
+
+            if (n !== replaced) {
+              return JSON.parse(replaced);
+            } else {
+              return n;
+            }
+          })),
           filterPattern: _this.templateSrv.replace(target.filterPattern, options.scopedVars),
-          limit: target.limit,
+          limit: parseInt(_this.templateSrv.replace(target.limit, options.scopedVars), 10),
           interleaved: false
         };
 
@@ -598,7 +608,7 @@ function () {
         inputInsightsStartQuery = {
           logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
           queryString: _this.templateSrv.replace(target.queryString, options.scopedVars),
-          limit: target.limit
+          limit: parseInt(_this.templateSrv.replace(target.limit, options.scopedVars), 10)
         };
       }
 
@@ -864,7 +874,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.AwsCloudWatchLogsDatasourceQueryCtrl = undefined;
 
+var _lodash = __webpack_require__(/*! lodash */ "lodash");
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _sdk = __webpack_require__(/*! grafana/app/plugins/sdk */ "grafana/app/plugins/sdk");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var __extends = undefined && undefined.__extends || function () {
   var extendStatics = Object.setPrototypeOf || {
@@ -902,8 +918,13 @@ function (_super) {
     _this.target.logGroupName = _this.target.logGroupName || '';
     _this.target.logStreamNames = _this.target.logStreamNames || [];
     _this.target.filterPattern = _this.target.filterPattern || '';
-    _this.target.queryString = _this.target.queryString || '';
-    _this.target.limit = _this.target.limit || 10000;
+    _this.target.queryString = _this.target.queryString || ''; // backward compatibility
+
+    if (_lodash2.default.isNumber(_this.target.limit)) {
+      _this.target.limit = String(_this.target.limit);
+    }
+
+    _this.target.limit = _this.target.limit || '10000';
     _this.target.legendFormat = _this.target.legendFormat || '';
     _this.target.timestampColumn = _this.target.timestampColumn || '';
     _this.target.valueColumn = _this.target.valueColumn || '';
