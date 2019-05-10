@@ -380,6 +380,7 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.Datasource
 			LogGroupName:  input.LogGroupName,
 			LogStreamName: input.LogStreamNames[0],
 			StartFromHead: aws.Bool(true),
+			Limit:         input.Limit,
 		}
 		err = svc.GetLogEventsPages(i,
 			func(page *cloudwatchlogs.GetLogEventsOutput, lastPage bool) bool {
