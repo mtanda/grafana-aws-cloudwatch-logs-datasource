@@ -371,6 +371,9 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.Datasource
 				if len(resp.Events) > 1000 {
 					return false // safety limit
 				}
+				if int64(len(resp.Events)) >= *input.Limit {
+					return false // should stop to next query
+				}
 				return !lastPage
 			})
 	} else {
@@ -395,6 +398,9 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.Datasource
 				}
 				if len(resp.Events) > 1000 {
 					return false // safety limit
+				}
+				if int64(len(resp.Events)) >= *input.Limit {
+					return false // should stop to next query
 				}
 				return !lastPage
 			})
