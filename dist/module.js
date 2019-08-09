@@ -605,11 +605,18 @@ function () {
           delete input.logStreamNames;
         }
       } else {
+        var logGroupName = _this.templateSrv.replace(target.logGroupName, options.scopedVars);
+
         inputInsightsStartQuery = {
-          logGroupName: _this.templateSrv.replace(target.logGroupName, options.scopedVars),
           queryString: _this.templateSrv.replace(target.queryString, options.scopedVars),
           limit: parseInt(_this.templateSrv.replace(target.limit, options.scopedVars), 10)
         };
+
+        if (logGroupName.indexOf(',') >= 0) {
+          inputInsightsStartQuery.logGroupNames = logGroupName.split(',');
+        } else {
+          inputInsightsStartQuery.logGroupName = logGroupName;
+        }
       }
 
       return {
