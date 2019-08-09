@@ -6,7 +6,6 @@ var conf = baseWebpackConfig;
 //conf.mode = 'production';
 conf.mode = 'development';
 
-conf.plugins.push(new ngAnnotatePlugin());
 //conf.plugins.push(
 //  new UglifyJSPlugin({
 //    sourceMap: true,

@@ -11,6 +11,8 @@
   "author": "Mitsuhiro Tanda",
   "license": "Apache",
   "dependencies": {
+    "@grafana/data": "^6.3.0-alpha.32",
+    "@grafana/ui": "^6.3.0-alpha.32",
     "lodash": "^4.17.15",
     "moment": "^2.22.1",
     "rxjs": "^6.2.1",
@@ -26,6 +28,7 @@
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^24.8.0",
     "babel-loader": "^7.1.4",
+    "babel-plugin-angularjs-annotate": "0.10.0",
     "babel-preset-env": "^1.7.0",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.1",
