@@ -45,6 +45,24 @@
         {"shape":"AccessDeniedException"}
       ]
     },
+    "CopyWorkspaceImage":{
+      "name":"CopyWorkspaceImage",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CopyWorkspaceImageRequest"},
+      "output":{"shape":"CopyWorkspaceImageResult"},
+      "errors":[
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceUnavailableException"},
+        {"shape":"OperationNotSupportedException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValuesException"}
+      ]
+    },
     "CreateIpGroup":{
       "name":"CreateIpGroup",
       "http":{
@@ -282,7 +300,8 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"OperationNotSupportedException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValuesException"}
       ]
     },
     "ListAvailableManagementCidrRanges":{
@@ -557,13 +576,35 @@
         "UNKNOWN"
       ]
     },
+    "CopyWorkspaceImageRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "SourceImageId",
+        "SourceRegion"
+      ],
+      "members":{
+        "Name":{"shape":"WorkspaceImageName"},
+        "Description":{"shape":"WorkspaceImageDescription"},
+        "SourceImageId":{"shape":"WorkspaceImageId"},
+        "SourceRegion":{"shape":"Region"},
+        "Tags":{"shape":"TagList"}
+      }
+    },
+    "CopyWorkspaceImageResult":{
+      "type":"structure",
+      "members":{
+        "ImageId":{"shape":"WorkspaceImageId"}
+      }
+    },
     "CreateIpGroupRequest":{
       "type":"structure",
       "required":["GroupName"],
       "members":{
         "GroupName":{"shape":"IpGroupName"},
         "GroupDesc":{"shape":"IpGroupDesc"},
-        "UserRules":{"shape":"IpRuleList"}
+        "UserRules":{"shape":"IpRuleList"},
+        "Tags":{"shape":"TagList"}
       }
     },
     "CreateIpGroupResult":{
@@ -916,7 +957,8 @@
         "Ec2ImageId":{"shape":"Ec2ImageId"},
         "IngestionProcess":{"shape":"WorkspaceImageIngestionProcess"},
         "ImageName":{"shape":"WorkspaceImageName"},
-        "ImageDescription":{"shape":"WorkspaceImageDescription"}
+        "ImageDescription":{"shape":"WorkspaceImageDescription"},
+        "Tags":{"shape":"TagList"}
       }
     },
     "ImportWorkspaceImageResult":{
@@ -1177,6 +1219,12 @@
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "Region":{
+      "type":"string",
+      "max":31,
+      "min":1,
+      "pattern":"^[-0-9a-z]{1,31}$"
     },
     "RegistrationCode":{
       "type":"string",

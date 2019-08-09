@@ -342,6 +342,43 @@
         }
       ]
     },
+    "DeleteSchedule": {
+      "name": "DeleteSchedule",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/prod/channels/{channelId}/schedule",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DeleteScheduleRequest"
+      },
+      "output": {
+        "shape": "DeleteScheduleResponse"
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException"
+        },
+        {
+          "shape": "InternalServerErrorException"
+        },
+        {
+          "shape": "ForbiddenException"
+        },
+        {
+          "shape": "BadGatewayException"
+        },
+        {
+          "shape": "NotFoundException"
+        },
+        {
+          "shape": "GatewayTimeoutException"
+        },
+        {
+          "shape": "TooManyRequestsException"
+        }
+      ]
+    },
     "DeleteTags": {
       "name": "DeleteTags",
       "http": {
@@ -944,6 +981,49 @@
         }
       ]
     },
+    "UpdateChannelClass": {
+      "name": "UpdateChannelClass",
+      "http": {
+        "method": "PUT",
+        "requestUri": "/prod/channels/{channelId}/channelClass",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateChannelClassRequest"
+      },
+      "output": {
+        "shape": "UpdateChannelClassResponse"
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException"
+        },
+        {
+          "shape": "UnprocessableEntityException"
+        },
+        {
+          "shape": "InternalServerErrorException"
+        },
+        {
+          "shape": "ForbiddenException"
+        },
+        {
+          "shape": "BadGatewayException"
+        },
+        {
+          "shape": "NotFoundException"
+        },
+        {
+          "shape": "GatewayTimeoutException"
+        },
+        {
+          "shape": "TooManyRequestsException"
+        },
+        {
+          "shape": "ConflictException"
+        }
+      ]
+    },
     "UpdateInput": {
       "name": "UpdateInput",
       "http": {
@@ -1012,6 +1092,46 @@
         },
         {
           "shape": "GatewayTimeoutException"
+        },
+        {
+          "shape": "ConflictException"
+        }
+      ]
+    },
+    "UpdateReservation": {
+      "name": "UpdateReservation",
+      "http": {
+        "method": "PUT",
+        "requestUri": "/prod/reservations/{reservationId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateReservationRequest"
+      },
+      "output": {
+        "shape": "UpdateReservationResponse"
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException"
+        },
+        {
+          "shape": "InternalServerErrorException"
+        },
+        {
+          "shape": "ForbiddenException"
+        },
+        {
+          "shape": "BadGatewayException"
+        },
+        {
+          "shape": "NotFoundException"
+        },
+        {
+          "shape": "GatewayTimeoutException"
+        },
+        {
+          "shape": "TooManyRequestsException"
         },
         {
           "shape": "ConflictException"
@@ -1993,6 +2113,10 @@
           "shape": "__string",
           "locationName": "arn"
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2025,6 +2149,10 @@
           "shape": "__string",
           "locationName": "name"
         },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails"
+        },
         "PipelinesRunningCount": {
           "shape": "__integer",
           "locationName": "pipelinesRunningCount"
@@ -2042,6 +2170,13 @@
           "locationName": "tags"
         }
       }
+    },
+    "ChannelClass": {
+      "type": "string",
+      "enum": [
+        "STANDARD",
+        "SINGLE_PIPELINE"
+      ]
     },
     "ChannelConfigurationValidationError": {
       "type": "structure",
@@ -2076,7 +2211,9 @@
         "RECOVERING",
         "STOPPING",
         "DELETING",
-        "DELETED"
+        "DELETED",
+        "UPDATING",
+        "UPDATE_FAILED"
       ]
     },
     "ChannelSummary": {
@@ -2085,6 +2222,10 @@
         "Arn": {
           "shape": "__string",
           "locationName": "arn"
+        },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
         },
         "Destinations": {
           "shape": "__listOfOutputDestination",
@@ -2148,6 +2289,10 @@
     "CreateChannel": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2195,6 +2340,10 @@
     "CreateChannelRequest": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2435,6 +2584,10 @@
           "shape": "__string",
           "locationName": "arn"
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2466,6 +2619,10 @@
         "Name": {
           "shape": "__string",
           "locationName": "name"
+        },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails"
         },
         "PipelinesRunningCount": {
           "shape": "__integer",
@@ -2601,10 +2758,32 @@
           "shape": "ReservationState",
           "locationName": "state"
         },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags"
+        },
         "UsagePrice": {
           "shape": "__double",
           "locationName": "usagePrice"
         }
+      }
+    },
+    "DeleteScheduleRequest": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "channelId"
+        }
+      },
+      "required": [
+        "ChannelId"
+      ]
+    },
+    "DeleteScheduleResponse": {
+      "type": "structure",
+      "members": {
       }
     },
     "DeleteTagsRequest": {
@@ -2646,6 +2825,10 @@
           "shape": "__string",
           "locationName": "arn"
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2677,6 +2860,10 @@
         "Name": {
           "shape": "__string",
           "locationName": "name"
+        },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails"
         },
         "PipelinesRunningCount": {
           "shape": "__integer",
@@ -2727,6 +2914,14 @@
         "Id": {
           "shape": "__string",
           "locationName": "id"
+        },
+        "InputClass": {
+          "shape": "InputClass",
+          "locationName": "inputClass"
+        },
+        "InputSourceType": {
+          "shape": "InputSourceType",
+          "locationName": "inputSourceType"
         },
         "MediaConnectFlows": {
           "shape": "__listOfMediaConnectFlow",
@@ -2945,6 +3140,10 @@
         "State": {
           "shape": "ReservationState",
           "locationName": "state"
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags"
         },
         "UsagePrice": {
           "shape": "__double",
@@ -3629,6 +3828,10 @@
           "shape": "InputLossBehavior",
           "locationName": "inputLossBehavior"
         },
+        "OutputLockingMode": {
+          "shape": "GlobalConfigurationOutputLockingMode",
+          "locationName": "outputLockingMode"
+        },
         "OutputTimingSource": {
           "shape": "GlobalConfigurationOutputTimingSource",
           "locationName": "outputTimingSource"
@@ -3651,6 +3854,13 @@
       "enum": [
         "DISABLED",
         "ENABLED"
+      ]
+    },
+    "GlobalConfigurationOutputLockingMode": {
+      "type": "string",
+      "enum": [
+        "EPOCH_LOCKING",
+        "PIPELINE_LOCKING"
       ]
     },
     "GlobalConfigurationOutputTimingSource": {
@@ -4474,6 +4684,11 @@
         "STANDARD"
       ]
     },
+    "ImmediateModeScheduleActionStartSettings": {
+      "type": "structure",
+      "members": {
+      }
+    },
     "Input": {
       "type": "structure",
       "members": {
@@ -4492,6 +4707,14 @@
         "Id": {
           "shape": "__string",
           "locationName": "id"
+        },
+        "InputClass": {
+          "shape": "InputClass",
+          "locationName": "inputClass"
+        },
+        "InputSourceType": {
+          "shape": "InputSourceType",
+          "locationName": "inputSourceType"
         },
         "MediaConnectFlows": {
           "shape": "__listOfMediaConnectFlow",
@@ -4559,6 +4782,33 @@
       "required": [
         "InputChannel",
         "Gain"
+      ]
+    },
+    "InputClass": {
+      "type": "string",
+      "enum": [
+        "STANDARD",
+        "SINGLE_PIPELINE"
+      ]
+    },
+    "InputClippingSettings": {
+      "type": "structure",
+      "members": {
+        "InputTimecodeSource": {
+          "shape": "InputTimecodeSource",
+          "locationName": "inputTimecodeSource"
+        },
+        "StartTimecode": {
+          "shape": "StartTimecode",
+          "locationName": "startTimecode"
+        },
+        "StopTimecode": {
+          "shape": "StopTimecode",
+          "locationName": "stopTimecode"
+        }
+      },
+      "required": [
+        "InputTimecodeSource"
       ]
     },
     "InputCodec": {
@@ -4864,6 +5114,13 @@
         }
       }
     },
+    "InputSourceType": {
+      "type": "string",
+      "enum": [
+        "STATIC",
+        "DYNAMIC"
+      ]
+    },
     "InputSpecification": {
       "type": "structure",
       "members": {
@@ -4897,10 +5154,25 @@
         "InputAttachmentNameReference": {
           "shape": "__string",
           "locationName": "inputAttachmentNameReference"
+        },
+        "InputClippingSettings": {
+          "shape": "InputClippingSettings",
+          "locationName": "inputClippingSettings"
+        },
+        "UrlPath": {
+          "shape": "__listOf__string",
+          "locationName": "urlPath"
         }
       },
       "required": [
         "InputAttachmentNameReference"
+      ]
+    },
+    "InputTimecodeSource": {
+      "type": "string",
+      "enum": [
+        "ZEROBASED",
+        "EMBEDDED"
       ]
     },
     "InputType": {
@@ -4988,6 +5260,13 @@
           "locationName": "staticKeySettings"
         }
       }
+    },
+    "LastFrameClippingBehavior": {
+      "type": "string",
+      "enum": [
+        "EXCLUDE_LAST_FRAME",
+        "INCLUDE_LAST_FRAME"
+      ]
     },
     "LimitExceeded": {
       "type": "structure",
@@ -5124,6 +5403,11 @@
     "ListOfferingsRequest": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "channelClass"
+        },
         "ChannelConfiguration": {
           "shape": "__string",
           "location": "querystring",
@@ -5205,6 +5489,11 @@
     "ListReservationsRequest": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "channelClass"
+        },
         "Codec": {
           "shape": "__string",
           "location": "querystring",
@@ -5742,6 +6031,32 @@
         }
       }
     },
+    "MediaPackageGroupSettings": {
+      "type": "structure",
+      "members": {
+        "Destination": {
+          "shape": "OutputLocationRef",
+          "locationName": "destination"
+        }
+      },
+      "required": [
+        "Destination"
+      ]
+    },
+    "MediaPackageOutputDestinationSettings": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__stringMin1",
+          "locationName": "channelId"
+        }
+      }
+    },
+    "MediaPackageOutputSettings": {
+      "type": "structure",
+      "members": {
+      }
+    },
     "Mp2CodingMode": {
       "type": "string",
       "enum": [
@@ -5988,6 +6303,10 @@
           "shape": "__string",
           "locationName": "id"
         },
+        "MediaPackageSettings": {
+          "shape": "__listOfMediaPackageOutputDestinationSettings",
+          "locationName": "mediaPackageSettings"
+        },
         "Settings": {
           "shape": "__listOfOutputDestinationSettings",
           "locationName": "settings"
@@ -6051,6 +6370,10 @@
           "shape": "HlsGroupSettings",
           "locationName": "hlsGroupSettings"
         },
+        "MediaPackageGroupSettings": {
+          "shape": "MediaPackageGroupSettings",
+          "locationName": "mediaPackageGroupSettings"
+        },
         "MsSmoothGroupSettings": {
           "shape": "MsSmoothGroupSettings",
           "locationName": "msSmoothGroupSettings"
@@ -6089,6 +6412,10 @@
           "shape": "HlsOutputSettings",
           "locationName": "hlsOutputSettings"
         },
+        "MediaPackageOutputSettings": {
+          "shape": "MediaPackageOutputSettings",
+          "locationName": "mediaPackageOutputSettings"
+        },
         "MsSmoothOutputSettings": {
           "shape": "MsSmoothOutputSettings",
           "locationName": "msSmoothOutputSettings"
@@ -6114,6 +6441,23 @@
         "Pipelines": {
           "shape": "__listOfPipelinePauseStateSettings",
           "locationName": "pipelines"
+        }
+      }
+    },
+    "PipelineDetail": {
+      "type": "structure",
+      "members": {
+        "ActiveInputAttachmentName": {
+          "shape": "__string",
+          "locationName": "activeInputAttachmentName"
+        },
+        "ActiveInputSwitchActionName": {
+          "shape": "__string",
+          "locationName": "activeInputSwitchActionName"
+        },
+        "PipelineId": {
+          "shape": "__string",
+          "locationName": "pipelineId"
         }
       }
     },
@@ -6155,6 +6499,10 @@
         "Start": {
           "shape": "__string",
           "locationName": "start"
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags"
         }
       },
       "required": [
@@ -6185,6 +6533,10 @@
         "Start": {
           "shape": "__string",
           "locationName": "start"
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags"
         }
       },
       "required": [
@@ -6297,6 +6649,10 @@
           "shape": "ReservationState",
           "locationName": "state"
         },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags"
+        },
         "UsagePrice": {
           "shape": "__double",
           "locationName": "usagePrice"
@@ -6338,6 +6694,10 @@
     "ReservationResourceSpecification": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Codec": {
           "shape": "ReservationCodec",
           "locationName": "codec"
@@ -6567,7 +6927,16 @@
         "FollowModeScheduleActionStartSettings": {
           "shape": "FollowModeScheduleActionStartSettings",
           "locationName": "followModeScheduleActionStartSettings"
+        },
+        "ImmediateModeScheduleActionStartSettings": {
+          "shape": "ImmediateModeScheduleActionStartSettings",
+          "locationName": "immediateModeScheduleActionStartSettings"
         }
+      }
+    },
+    "ScheduleDeleteResultModel": {
+      "type": "structure",
+      "members": {
       }
     },
     "ScheduleDescribeResultModel": {
@@ -6717,7 +7086,7 @@
       "type": "structure",
       "members": {
         "SpliceEventId": {
-          "shape": "__integerMin0Max4294967295",
+          "shape": "__longMin0Max4294967295",
           "locationName": "spliceEventId"
         }
       },
@@ -6748,11 +7117,11 @@
           "locationName": "segmentationCancelIndicator"
         },
         "SegmentationDuration": {
-          "shape": "__integerMin0Max1099511627775",
+          "shape": "__longMin0Max1099511627775",
           "locationName": "segmentationDuration"
         },
         "SegmentationEventId": {
-          "shape": "__integerMin0Max4294967295",
+          "shape": "__longMin0Max4294967295",
           "locationName": "segmentationEventId"
         },
         "SegmentationTypeId": {
@@ -6813,11 +7182,11 @@
       "type": "structure",
       "members": {
         "Duration": {
-          "shape": "__integerMin0Max8589934591",
+          "shape": "__longMin0Max8589934591",
           "locationName": "duration"
         },
         "SpliceEventId": {
-          "shape": "__integerMin0Max4294967295",
+          "shape": "__longMin0Max4294967295",
           "locationName": "spliceEventId"
         }
       },
@@ -6866,6 +7235,23 @@
       "enum": [
         "WEB_DELIVERY_NOT_ALLOWED",
         "WEB_DELIVERY_ALLOWED"
+      ]
+    },
+    "ServiceDescriptor": {
+      "type": "structure",
+      "members": {
+        "ProviderName": {
+          "shape": "__stringMax256",
+          "locationName": "providerName"
+        },
+        "ServiceName": {
+          "shape": "__stringMax256",
+          "locationName": "serviceName"
+        }
+      },
+      "required": [
+        "ProviderName",
+        "ServiceName"
       ]
     },
     "SmoothGroupAudioOnlyTimecodeControl": {
@@ -6966,6 +7352,10 @@
           "shape": "__string",
           "locationName": "arn"
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -6998,6 +7388,10 @@
           "shape": "__string",
           "locationName": "name"
         },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails"
+        },
         "PipelinesRunningCount": {
           "shape": "__integer",
           "locationName": "pipelinesRunningCount"
@@ -7013,6 +7407,15 @@
         "Tags": {
           "shape": "Tags",
           "locationName": "tags"
+        }
+      }
+    },
+    "StartTimecode": {
+      "type": "structure",
+      "members": {
+        "Timecode": {
+          "shape": "__string",
+          "locationName": "timecode"
         }
       }
     },
@@ -7113,6 +7516,10 @@
           "shape": "__string",
           "locationName": "arn"
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -7145,6 +7552,10 @@
           "shape": "__string",
           "locationName": "name"
         },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails"
+        },
         "PipelinesRunningCount": {
           "shape": "__integer",
           "locationName": "pipelinesRunningCount"
@@ -7160,6 +7571,19 @@
         "Tags": {
           "shape": "Tags",
           "locationName": "tags"
+        }
+      }
+    },
+    "StopTimecode": {
+      "type": "structure",
+      "members": {
+        "LastFrameClippingBehavior": {
+          "shape": "LastFrameClippingBehavior",
+          "locationName": "lastFrameClippingBehavior"
+        },
+        "Timecode": {
+          "shape": "__string",
+          "locationName": "timecode"
         }
       }
     },
@@ -7357,6 +7781,53 @@
         }
       }
     },
+    "UpdateChannelClass": {
+      "type": "structure",
+      "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
+        "Destinations": {
+          "shape": "__listOfOutputDestination",
+          "locationName": "destinations"
+        }
+      },
+      "required": [
+        "ChannelClass"
+      ]
+    },
+    "UpdateChannelClassRequest": {
+      "type": "structure",
+      "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass"
+        },
+        "ChannelId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "channelId"
+        },
+        "Destinations": {
+          "shape": "__listOfOutputDestination",
+          "locationName": "destinations"
+        }
+      },
+      "required": [
+        "ChannelId",
+        "ChannelClass"
+      ]
+    },
+    "UpdateChannelClassResponse": {
+      "type": "structure",
+      "members": {
+        "Channel": {
+          "shape": "Channel",
+          "locationName": "channel"
+        }
+      }
+    },
     "UpdateChannelRequest": {
       "type": "structure",
       "members": {
@@ -7539,6 +8010,50 @@
         }
       }
     },
+    "UpdateReservation": {
+      "type": "structure",
+      "members": {
+        "Name": {
+          "shape": "__string",
+          "locationName": "name"
+        }
+      }
+    },
+    "UpdateReservationRequest": {
+      "type": "structure",
+      "members": {
+        "Name": {
+          "shape": "__string",
+          "locationName": "name"
+        },
+        "ReservationId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "reservationId"
+        }
+      },
+      "required": [
+        "ReservationId"
+      ]
+    },
+    "UpdateReservationResponse": {
+      "type": "structure",
+      "members": {
+        "Reservation": {
+          "shape": "Reservation",
+          "locationName": "reservation"
+        }
+      }
+    },
+    "UpdateReservationResultModel": {
+      "type": "structure",
+      "members": {
+        "Reservation": {
+          "shape": "Reservation",
+          "locationName": "reservation"
+        }
+      }
+    },
     "ValidationError": {
       "type": "structure",
       "members": {
@@ -7693,7 +8208,16 @@
     "__doubleMin0": {
       "type": "double"
     },
+    "__doubleMin0Max1000000000": {
+      "type": "double"
+    },
+    "__doubleMin0Max65535": {
+      "type": "double"
+    },
     "__doubleMin1": {
+      "type": "double"
+    },
+    "__doubleMin10000Max1000000000": {
       "type": "double"
     },
     "__doubleMinNegative59Max0": {
@@ -7731,11 +8255,6 @@
       "min": 0,
       "max": 1000000
     },
-    "__integerMin0Max1099511627775": {
-      "type": "long",
-      "min": 0,
-      "max": 1099511627775
-    },
     "__integerMin0Max128": {
       "type": "integer",
       "min": 0,
@@ -7760,11 +8279,6 @@
       "type": "integer",
       "min": 0,
       "max": 3600
-    },
-    "__integerMin0Max4294967295": {
-      "type": "long",
-      "min": 0,
-      "max": 4294967295
     },
     "__integerMin0Max500": {
       "type": "integer",
@@ -7796,11 +8310,6 @@
       "min": 0,
       "max": 8191
     },
-    "__integerMin0Max8589934591": {
-      "type": "long",
-      "min": 0,
-      "max": 8589934591
-    },
     "__integerMin1": {
       "type": "integer",
       "min": 1
@@ -7808,6 +8317,11 @@
     "__integerMin1000": {
       "type": "integer",
       "min": 1000
+    },
+    "__integerMin100000Max100000000": {
+      "type": "integer",
+      "min": 100000,
+      "max": 100000000
     },
     "__integerMin1000Max30000": {
       "type": "integer",
@@ -8038,6 +8552,12 @@
         "shape": "MediaConnectFlowRequest"
       }
     },
+    "__listOfMediaPackageOutputDestinationSettings": {
+      "type": "list",
+      "member": {
+        "shape": "MediaPackageOutputDestinationSettings"
+      }
+    },
     "__listOfOffering": {
       "type": "list",
       "member": {
@@ -8066,6 +8586,12 @@
       "type": "list",
       "member": {
         "shape": "OutputGroup"
+      }
+    },
+    "__listOfPipelineDetail": {
+      "type": "list",
+      "member": {
+        "shape": "PipelineDetail"
       }
     },
     "__listOfPipelinePauseStateSettings": {
@@ -8113,8 +8639,27 @@
     "__long": {
       "type": "long"
     },
+    "__longMin0Max1099511627775": {
+      "type": "long",
+      "min": 0,
+      "max": 1099511627775
+    },
+    "__longMin0Max4294967295": {
+      "type": "long",
+      "min": 0,
+      "max": 4294967295
+    },
+    "__longMin0Max8589934591": {
+      "type": "long",
+      "min": 0,
+      "max": 8589934591
+    },
     "__string": {
       "type": "string"
+    },
+    "__stringMax256": {
+      "type": "string",
+      "max": 256
     },
     "__stringMax32": {
       "type": "string",

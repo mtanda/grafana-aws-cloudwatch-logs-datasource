@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:2f245539121de543cc8a58318712d83da09bb559f61921c1df6c598f07ceff30"
+  digest = "1:cfe39a015adcf9cc2bce0e8bd38ecf041cb516b8ab7a2ecb11b1c84a4b8acabf"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -37,10 +37,11 @@
     "private/protocol/xml/xmlutil",
     "service/cloudwatchlogs",
     "service/sts",
+    "service/sts/stsiface",
   ]
   pruneopts = ""
-  revision = "6ff66bb2b8ac90ac25b1dbbf9806f09651630789"
-  version = "v1.17.12"
+  revision = "14379de571db1ac1b08f2f723a1acc1810c4dd0d"
+  version = "v1.22.2"
 
 [[projects]]
   branch = "master"

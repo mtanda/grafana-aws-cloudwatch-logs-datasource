@@ -1126,6 +1126,7 @@
         "AIFF",
         "AC3",
         "EAC3",
+        "EAC3_ATMOS",
         "PASSTHROUGH"
       ]
     },
@@ -1147,6 +1148,10 @@
         "Codec": {
           "shape": "AudioCodec",
           "locationName": "codec"
+        },
+        "Eac3AtmosSettings": {
+          "shape": "Eac3AtmosSettings",
+          "locationName": "eac3AtmosSettings"
         },
         "Eac3Settings": {
           "shape": "Eac3Settings",
@@ -1225,7 +1230,9 @@
       "type": "string",
       "enum": [
         "ITU_BS_1770_1",
-        "ITU_BS_1770_2"
+        "ITU_BS_1770_2",
+        "ITU_BS_1770_3",
+        "ITU_BS_1770_4"
       ]
     },
     "AudioNormalizationAlgorithmControl": {
@@ -1755,6 +1762,10 @@
           "shape": "__stringPatternS3",
           "locationName": "destination"
         },
+        "DestinationSettings": {
+          "shape": "DestinationSettings",
+          "locationName": "destinationSettings"
+        },
         "Encryption": {
           "shape": "CmafEncryptionSettings",
           "locationName": "encryption"
@@ -2002,6 +2013,10 @@
           "shape": "__string",
           "locationName": "jobTemplate"
         },
+        "Priority": {
+          "shape": "__integerMinNegative50Max50",
+          "locationName": "priority"
+        },
         "Queue": {
           "shape": "__string",
           "locationName": "queue"
@@ -2014,9 +2029,9 @@
           "shape": "JobSettings",
           "locationName": "settings"
         },
-        "StatusUpdateIntervalInSecs": {
-          "shape": "__integerMin10Max600",
-          "locationName": "statusUpdateIntervalInSecs"
+        "StatusUpdateInterval": {
+          "shape": "StatusUpdateInterval",
+          "locationName": "statusUpdateInterval"
         },
         "UserMetadata": {
           "shape": "__mapOf__string",
@@ -2056,6 +2071,10 @@
           "shape": "__string",
           "locationName": "name"
         },
+        "Priority": {
+          "shape": "__integerMinNegative50Max50",
+          "locationName": "priority"
+        },
         "Queue": {
           "shape": "__string",
           "locationName": "queue"
@@ -2064,9 +2083,9 @@
           "shape": "JobTemplateSettings",
           "locationName": "settings"
         },
-        "StatusUpdateIntervalInSecs": {
-          "shape": "__integerMin10Max600",
-          "locationName": "statusUpdateIntervalInSecs"
+        "StatusUpdateInterval": {
+          "shape": "StatusUpdateInterval",
+          "locationName": "statusUpdateInterval"
         },
         "Tags": {
           "shape": "__mapOf__string",
@@ -2165,6 +2184,10 @@
     "DashIsoEncryptionSettings": {
       "type": "structure",
       "members": {
+        "PlaybackDeviceCompatibility": {
+          "shape": "DashIsoPlaybackDeviceCompatibility",
+          "locationName": "playbackDeviceCompatibility"
+        },
         "SpekeKeyProvider": {
           "shape": "SpekeKeyProvider",
           "locationName": "spekeKeyProvider"
@@ -2181,6 +2204,10 @@
         "Destination": {
           "shape": "__stringPatternS3",
           "locationName": "destination"
+        },
+        "DestinationSettings": {
+          "shape": "DestinationSettings",
+          "locationName": "destinationSettings"
         },
         "Encryption": {
           "shape": "DashIsoEncryptionSettings",
@@ -2217,6 +2244,13 @@
       "enum": [
         "HBBTV_1_5",
         "NONE"
+      ]
+    },
+    "DashIsoPlaybackDeviceCompatibility": {
+      "type": "string",
+      "enum": [
+        "CENC_V1",
+        "UNENCRYPTED_SEI"
       ]
     },
     "DashIsoSegmentControl": {
@@ -2373,12 +2407,22 @@
         }
       }
     },
+    "DestinationSettings": {
+      "type": "structure",
+      "members": {
+        "S3Settings": {
+          "shape": "S3DestinationSettings",
+          "locationName": "s3Settings"
+        }
+      }
+    },
     "DisassociateCertificateRequest": {
       "type": "structure",
       "members": {
         "Arn": {
           "shape": "__string",
-          "locationName": "arn"
+          "locationName": "arn",
+          "location": "uri"
         }
       },
       "required": [
@@ -2577,6 +2621,139 @@
           "locationName": "tdtInterval"
         }
       }
+    },
+    "Eac3AtmosBitstreamMode": {
+      "type": "string",
+      "enum": [
+        "COMPLETE_MAIN"
+      ]
+    },
+    "Eac3AtmosCodingMode": {
+      "type": "string",
+      "enum": [
+        "CODING_MODE_9_1_6"
+      ]
+    },
+    "Eac3AtmosDialogueIntelligence": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "Eac3AtmosDynamicRangeCompressionLine": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "FILM_STANDARD",
+        "FILM_LIGHT",
+        "MUSIC_STANDARD",
+        "MUSIC_LIGHT",
+        "SPEECH"
+      ]
+    },
+    "Eac3AtmosDynamicRangeCompressionRf": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "FILM_STANDARD",
+        "FILM_LIGHT",
+        "MUSIC_STANDARD",
+        "MUSIC_LIGHT",
+        "SPEECH"
+      ]
+    },
+    "Eac3AtmosMeteringMode": {
+      "type": "string",
+      "enum": [
+        "LEQ_A",
+        "ITU_BS_1770_1",
+        "ITU_BS_1770_2",
+        "ITU_BS_1770_3",
+        "ITU_BS_1770_4"
+      ]
+    },
+    "Eac3AtmosSettings": {
+      "type": "structure",
+      "members": {
+        "Bitrate": {
+          "shape": "__integerMin384000Max768000",
+          "locationName": "bitrate"
+        },
+        "BitstreamMode": {
+          "shape": "Eac3AtmosBitstreamMode",
+          "locationName": "bitstreamMode"
+        },
+        "CodingMode": {
+          "shape": "Eac3AtmosCodingMode",
+          "locationName": "codingMode"
+        },
+        "DialogueIntelligence": {
+          "shape": "Eac3AtmosDialogueIntelligence",
+          "locationName": "dialogueIntelligence"
+        },
+        "DynamicRangeCompressionLine": {
+          "shape": "Eac3AtmosDynamicRangeCompressionLine",
+          "locationName": "dynamicRangeCompressionLine"
+        },
+        "DynamicRangeCompressionRf": {
+          "shape": "Eac3AtmosDynamicRangeCompressionRf",
+          "locationName": "dynamicRangeCompressionRf"
+        },
+        "LoRoCenterMixLevel": {
+          "shape": "__doubleMinNegative6Max3",
+          "locationName": "loRoCenterMixLevel"
+        },
+        "LoRoSurroundMixLevel": {
+          "shape": "__doubleMinNegative60MaxNegative1",
+          "locationName": "loRoSurroundMixLevel"
+        },
+        "LtRtCenterMixLevel": {
+          "shape": "__doubleMinNegative6Max3",
+          "locationName": "ltRtCenterMixLevel"
+        },
+        "LtRtSurroundMixLevel": {
+          "shape": "__doubleMinNegative60MaxNegative1",
+          "locationName": "ltRtSurroundMixLevel"
+        },
+        "MeteringMode": {
+          "shape": "Eac3AtmosMeteringMode",
+          "locationName": "meteringMode"
+        },
+        "SampleRate": {
+          "shape": "__integerMin48000Max48000",
+          "locationName": "sampleRate"
+        },
+        "SpeechThreshold": {
+          "shape": "__integerMin1Max100",
+          "locationName": "speechThreshold"
+        },
+        "StereoDownmix": {
+          "shape": "Eac3AtmosStereoDownmix",
+          "locationName": "stereoDownmix"
+        },
+        "SurroundExMode": {
+          "shape": "Eac3AtmosSurroundExMode",
+          "locationName": "surroundExMode"
+        }
+      }
+    },
+    "Eac3AtmosStereoDownmix": {
+      "type": "string",
+      "enum": [
+        "NOT_INDICATED",
+        "STEREO",
+        "SURROUND",
+        "DPL2"
+      ]
+    },
+    "Eac3AtmosSurroundExMode": {
+      "type": "string",
+      "enum": [
+        "NOT_INDICATED",
+        "ENABLED",
+        "DISABLED"
+      ]
     },
     "Eac3AttenuationControl": {
       "type": "string",
@@ -2794,6 +2971,10 @@
         "Destination608ChannelNumber": {
           "shape": "__integerMin1Max4",
           "locationName": "destination608ChannelNumber"
+        },
+        "Destination708ServiceNumber": {
+          "shape": "__integerMin1Max6",
+          "locationName": "destination708ServiceNumber"
         }
       }
     },
@@ -2889,6 +3070,10 @@
         "Destination": {
           "shape": "__stringPatternS3",
           "locationName": "destination"
+        },
+        "DestinationSettings": {
+          "shape": "DestinationSettings",
+          "locationName": "destinationSettings"
         }
       }
     },
@@ -3841,6 +4026,13 @@
         "ELEMENTAL_SCTE35"
       ]
     },
+    "HlsAudioOnlyContainer": {
+      "type": "string",
+      "enum": [
+        "AUTOMATIC",
+        "M2TS"
+      ]
+    },
     "HlsAudioTrackType": {
       "type": "string",
       "enum": [
@@ -3970,6 +4162,10 @@
         "Destination": {
           "shape": "__stringPatternS3",
           "locationName": "destination"
+        },
+        "DestinationSettings": {
+          "shape": "DestinationSettings",
+          "locationName": "destinationSettings"
         },
         "DirectoryStructure": {
           "shape": "HlsDirectoryStructure",
@@ -4107,6 +4303,10 @@
           "shape": "__string",
           "locationName": "audioGroupId"
         },
+        "AudioOnlyContainer": {
+          "shape": "HlsAudioOnlyContainer",
+          "locationName": "audioOnlyContainer"
+        },
         "AudioRenditionSets": {
           "shape": "__string",
           "locationName": "audioRenditionSets"
@@ -4177,6 +4377,10 @@
           "shape": "__mapOfCaptionSelector",
           "locationName": "captionSelectors"
         },
+        "Crop": {
+          "shape": "Rectangle",
+          "locationName": "crop"
+        },
         "DeblockFilter": {
           "shape": "InputDeblockFilter",
           "locationName": "deblockFilter"
@@ -4190,7 +4394,7 @@
           "locationName": "denoiseFilter"
         },
         "FileInput": {
-          "shape": "__stringPatternS3MM2VVMMPPEEGGAAVVIIMMPP4FFLLVVMMPPTTMMPPGGMM4VVTTRRPPFF4VVMM2TTSSTTSS264HH264MMKKVVMMOOVVMMTTSSMM2TTWWMMVVAASSFFVVOOBB3GGPP3GGPPPPMMXXFFDDIIVVXXXXVVIIDDRRAAWWDDVVGGXXFFMM1VV3GG2VVMMFFMM3UU8LLCCHHGGXXFFMMPPEEGG2MMXXFFMMPPEEGG2MMXXFFHHDDWWAAVVYY4MMXXMMLL",
+          "shape": "__stringPatternHttpHttpsS3MM2VVMMPPEEGGAAVVIIMMPP4FFLLVVMMPPTTMMPPGGMM4VVTTRRPPFF4VVMM2TTSSTTSS264HH264MMKKVVMMOOVVMMTTSSMM2TTWWMMVVAASSFFVVOOBB3GGPP3GGPPPPMMXXFFDDIIVVXXXXVVIIDDRRAAWWDDVVGGXXFFMM1VV3GG2VVMMFFMM3UU8WWEEBBMMLLCCHHGGXXFFMMPPEEGG2MMXXFFMMPPEEGG2MMXXFFHHDDWWAAVVYY4MMXXMMLL",
           "locationName": "fileInput"
         },
         "FilterEnable": {
@@ -4208,6 +4412,10 @@
         "InputClippings": {
           "shape": "__listOfInputClipping",
           "locationName": "inputClippings"
+        },
+        "Position": {
+          "shape": "Rectangle",
+          "locationName": "position"
         },
         "ProgramNumber": {
           "shape": "__integerMin1Max2147483647",
@@ -4319,6 +4527,10 @@
           "shape": "__mapOfCaptionSelector",
           "locationName": "captionSelectors"
         },
+        "Crop": {
+          "shape": "Rectangle",
+          "locationName": "crop"
+        },
         "DeblockFilter": {
           "shape": "InputDeblockFilter",
           "locationName": "deblockFilter"
@@ -4342,6 +4554,10 @@
         "InputClippings": {
           "shape": "__listOfInputClipping",
           "locationName": "inputClippings"
+        },
+        "Position": {
+          "shape": "Rectangle",
+          "locationName": "position"
         },
         "ProgramNumber": {
           "shape": "__integerMin1Max2147483647",
@@ -4450,6 +4666,10 @@
           "shape": "__timestampUnix",
           "locationName": "createdAt"
         },
+        "CurrentPhase": {
+          "shape": "JobPhase",
+          "locationName": "currentPhase"
+        },
         "ErrorCode": {
           "shape": "__integer",
           "locationName": "errorCode"
@@ -4462,6 +4682,10 @@
           "shape": "__string",
           "locationName": "id"
         },
+        "JobPercentComplete": {
+          "shape": "__integer",
+          "locationName": "jobPercentComplete"
+        },
         "JobTemplate": {
           "shape": "__string",
           "locationName": "jobTemplate"
@@ -4470,9 +4694,17 @@
           "shape": "__listOfOutputGroupDetail",
           "locationName": "outputGroupDetails"
         },
+        "Priority": {
+          "shape": "__integerMinNegative50Max50",
+          "locationName": "priority"
+        },
         "Queue": {
           "shape": "__string",
           "locationName": "queue"
+        },
+        "RetryCount": {
+          "shape": "__integer",
+          "locationName": "retryCount"
         },
         "Role": {
           "shape": "__string",
@@ -4486,9 +4718,9 @@
           "shape": "JobStatus",
           "locationName": "status"
         },
-        "StatusUpdateIntervalInSecs": {
-          "shape": "__integerMin10Max600",
-          "locationName": "statusUpdateIntervalInSecs"
+        "StatusUpdateInterval": {
+          "shape": "StatusUpdateInterval",
+          "locationName": "statusUpdateInterval"
         },
         "Timing": {
           "shape": "Timing",
@@ -4502,6 +4734,14 @@
       "required": [
         "Role",
         "Settings"
+      ]
+    },
+    "JobPhase": {
+      "type": "string",
+      "enum": [
+        "PROBING",
+        "TRANSCODING",
+        "UPLOADING"
       ]
     },
     "JobSettings": {
@@ -4586,6 +4826,10 @@
           "shape": "__string",
           "locationName": "name"
         },
+        "Priority": {
+          "shape": "__integerMinNegative50Max50",
+          "locationName": "priority"
+        },
         "Queue": {
           "shape": "__string",
           "locationName": "queue"
@@ -4594,9 +4838,9 @@
           "shape": "JobTemplateSettings",
           "locationName": "settings"
         },
-        "StatusUpdateIntervalInSecs": {
-          "shape": "__integerMin10Max600",
-          "locationName": "statusUpdateIntervalInSecs"
+        "StatusUpdateInterval": {
+          "shape": "StatusUpdateInterval",
+          "locationName": "statusUpdateInterval"
         },
         "Type": {
           "shape": "Type",
@@ -5860,6 +6104,10 @@
           "shape": "__stringPatternS3",
           "locationName": "destination"
         },
+        "DestinationSettings": {
+          "shape": "DestinationSettings",
+          "locationName": "destinationSettings"
+        },
         "Encryption": {
           "shape": "MsSmoothEncryptionSettings",
           "locationName": "encryption"
@@ -5885,7 +6133,7 @@
       "type": "structure",
       "members": {
         "BreakoutCode": {
-          "shape": "__integerMin0Max9",
+          "shape": "__integerMin0Max0",
           "locationName": "breakoutCode"
         },
         "DistributorId": {
@@ -6485,6 +6733,35 @@
         "PASSTHROUGH"
       ]
     },
+    "S3DestinationSettings": {
+      "type": "structure",
+      "members": {
+        "Encryption": {
+          "shape": "S3EncryptionSettings",
+          "locationName": "encryption"
+        }
+      }
+    },
+    "S3EncryptionSettings": {
+      "type": "structure",
+      "members": {
+        "EncryptionType": {
+          "shape": "S3ServerSideEncryptionType",
+          "locationName": "encryptionType"
+        },
+        "KmsKeyArn": {
+          "shape": "__stringPatternArnAwsUsGovCnKmsAZ26EastWestCentralNorthSouthEastWest1912D12KeyAFAF098AFAF094AFAF094AFAF094AFAF0912",
+          "locationName": "kmsKeyArn"
+        }
+      }
+    },
+    "S3ServerSideEncryptionType": {
+      "type": "string",
+      "enum": [
+        "SERVER_SIDE_ENCRYPTION_S3",
+        "SERVER_SIDE_ENCRYPTION_KMS"
+      ]
+    },
     "ScalingBehavior": {
       "type": "string",
       "enum": [
@@ -6551,6 +6828,26 @@
           "locationName": "url"
         }
       }
+    },
+    "StatusUpdateInterval": {
+      "type": "string",
+      "enum": [
+        "SECONDS_10",
+        "SECONDS_12",
+        "SECONDS_15",
+        "SECONDS_20",
+        "SECONDS_30",
+        "SECONDS_60",
+        "SECONDS_120",
+        "SECONDS_180",
+        "SECONDS_240",
+        "SECONDS_300",
+        "SECONDS_360",
+        "SECONDS_420",
+        "SECONDS_480",
+        "SECONDS_540",
+        "SECONDS_600"
+      ]
     },
     "TagResourceRequest": {
       "type": "structure",
@@ -6772,6 +7069,10 @@
           "locationName": "name",
           "location": "uri"
         },
+        "Priority": {
+          "shape": "__integerMinNegative50Max50",
+          "locationName": "priority"
+        },
         "Queue": {
           "shape": "__string",
           "locationName": "queue"
@@ -6780,9 +7081,9 @@
           "shape": "JobTemplateSettings",
           "locationName": "settings"
         },
-        "StatusUpdateIntervalInSecs": {
-          "shape": "__integerMin10Max600",
-          "locationName": "statusUpdateIntervalInSecs"
+        "StatusUpdateInterval": {
+          "shape": "StatusUpdateInterval",
+          "locationName": "statusUpdateInterval"
         }
       },
       "required": [
@@ -7093,8 +7394,16 @@
     "__doubleMinNegative60MaxNegative1": {
       "type": "double"
     },
+    "__doubleMinNegative6Max3": {
+      "type": "double"
+    },
     "__integer": {
       "type": "integer"
+    },
+    "__integerMin0Max0": {
+      "type": "integer",
+      "min": 0,
+      "max": 0
     },
     "__integerMin0Max10": {
       "type": "integer",
@@ -7201,11 +7510,6 @@
       "min": 0,
       "max": 8
     },
-    "__integerMin0Max9": {
-      "type": "integer",
-      "min": 0,
-      "max": 9
-    },
     "__integerMin0Max96": {
       "type": "integer",
       "min": 0,
@@ -7245,11 +7549,6 @@
       "type": "integer",
       "min": 10,
       "max": 48
-    },
-    "__integerMin10Max600": {
-      "type": "long",
-      "min": 10,
-      "max": 600
     },
     "__integerMin16Max24": {
       "type": "integer",
@@ -7381,6 +7680,11 @@
       "min": 32,
       "max": 8182
     },
+    "__integerMin384000Max768000": {
+      "type": "integer",
+      "min": 384000,
+      "max": 768000
+    },
     "__integerMin48000Max48000": {
       "type": "integer",
       "min": 48000,
@@ -7430,6 +7734,11 @@
       "type": "integer",
       "min": -2,
       "max": 3
+    },
+    "__integerMinNegative50Max50": {
+      "type": "integer",
+      "min": -50,
+      "max": 50
     },
     "__integerMinNegative5Max5": {
       "type": "integer",
@@ -7608,9 +7917,6 @@
         "shape": "__stringPatternS3ASSETMAPXml"
       }
     },
-    "__long": {
-      "type": "long"
-    },
     "__mapOfAudioSelector": {
       "type": "map",
       "key": {
@@ -7758,9 +8064,17 @@
       "type": "string",
       "pattern": "^arn:aws(-us-gov)?:acm:"
     },
+    "__stringPatternArnAwsUsGovCnKmsAZ26EastWestCentralNorthSouthEastWest1912D12KeyAFAF098AFAF094AFAF094AFAF094AFAF0912": {
+      "type": "string",
+      "pattern": "^arn:aws(-us-gov|-cn)?:kms:[a-z-]{2,6}-(east|west|central|((north|south)(east|west)?))-[1-9]{1,2}:\\d{12}:key/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+    },
     "__stringPatternDD": {
       "type": "string",
       "pattern": "^(\\d+(\\/\\d+)*)$"
+    },
+    "__stringPatternHttpHttpsS3MM2VVMMPPEEGGAAVVIIMMPP4FFLLVVMMPPTTMMPPGGMM4VVTTRRPPFF4VVMM2TTSSTTSS264HH264MMKKVVMMOOVVMMTTSSMM2TTWWMMVVAASSFFVVOOBB3GGPP3GGPPPPMMXXFFDDIIVVXXXXVVIIDDRRAAWWDDVVGGXXFFMM1VV3GG2VVMMFFMM3UU8WWEEBBMMLLCCHHGGXXFFMMPPEEGG2MMXXFFMMPPEEGG2MMXXFFHHDDWWAAVVYY4MMXXMMLL": {
+      "type": "string",
+      "pattern": "^(http|https|s3)://([^\\/]+\\/)+([^\\/\\.]+|(([^\\/]*)\\.([mM]2[vV]|[mM][pP][eE][gG]|[aA][vV][iI]|[mM][pP]4|[fF][lL][vV]|[mM][pP][tT]|[mM][pP][gG]|[mM]4[vV]|[tT][rR][pP]|[fF]4[vV]|[mM]2[tT][sS]|[tT][sS]|264|[hH]264|[mM][kK][vV]|[mM][oO][vV]|[mM][tT][sS]|[mM]2[tT]|[wW][mM][vV]|[aA][sS][fF]|[vV][oO][bB]|3[gG][pP]|3[gG][pP][pP]|[mM][xX][fF]|[dD][iI][vV][xX]|[xX][vV][iI][dD]|[rR][aA][wW]|[dD][vV]|[gG][xX][fF]|[mM]1[vV]|3[gG]2|[vV][mM][fF]|[mM]3[uU]8|[wW][eE][bB][mM]|[lL][cC][hH]|[gG][xX][fF]_[mM][pP][eE][gG]2|[mM][xX][fF]_[mM][pP][eE][gG]2|[mM][xX][fF][hH][dD]|[wW][aA][vV]|[yY]4[mM]|[xX][mM][lL])))$"
     },
     "__stringPatternHttps": {
       "type": "string",
@@ -7781,10 +8095,6 @@
     "__stringPatternS3MM2VVMMPPEEGGAAVVIIMMPP4FFLLVVMMPPTTMMPPGGMM4VVTTRRPPFF4VVMM2TTSSTTSS264HH264MMKKVVMMOOVVMMTTSSMM2TTWWMMVVAASSFFVVOOBB3GGPP3GGPPPPMMXXFFDDIIVVXXXXVVIIDDRRAAWWDDVVGGXXFFMM1VV3GG2VVMMFFMM3UU8LLCCHHGGXXFFMMPPEEGG2MMXXFFMMPPEEGG2MMXXFFHHDDWWAAVVYY4MMAAAACCAAIIFFFFMMPP2AACC3EECC3DDTTSSEE": {
       "type": "string",
       "pattern": "^(s3:\\/\\/)([^\\/]+\\/)+([^\\/\\.]+|(([^\\/]*)\\.([mM]2[vV]|[mM][pP][eE][gG]|[aA][vV][iI]|[mM][pP]4|[fF][lL][vV]|[mM][pP][tT]|[mM][pP][gG]|[mM]4[vV]|[tT][rR][pP]|[fF]4[vV]|[mM]2[tT][sS]|[tT][sS]|264|[hH]264|[mM][kK][vV]|[mM][oO][vV]|[mM][tT][sS]|[mM]2[tT]|[wW][mM][vV]|[aA][sS][fF]|[vV][oO][bB]|3[gG][pP]|3[gG][pP][pP]|[mM][xX][fF]|[dD][iI][vV][xX]|[xX][vV][iI][dD]|[rR][aA][wW]|[dD][vV]|[gG][xX][fF]|[mM]1[vV]|3[gG]2|[vV][mM][fF]|[mM]3[uU]8|[lL][cC][hH]|[gG][xX][fF]_[mM][pP][eE][gG]2|[mM][xX][fF]_[mM][pP][eE][gG]2|[mM][xX][fF][hH][dD]|[wW][aA][vV]|[yY]4[mM]|[aA][aA][cC]|[aA][iI][fF][fF]|[mM][pP]2|[aA][cC]3|[eE][cC]3|[dD][tT][sS][eE])))$"
-    },
-    "__stringPatternS3MM2VVMMPPEEGGAAVVIIMMPP4FFLLVVMMPPTTMMPPGGMM4VVTTRRPPFF4VVMM2TTSSTTSS264HH264MMKKVVMMOOVVMMTTSSMM2TTWWMMVVAASSFFVVOOBB3GGPP3GGPPPPMMXXFFDDIIVVXXXXVVIIDDRRAAWWDDVVGGXXFFMM1VV3GG2VVMMFFMM3UU8LLCCHHGGXXFFMMPPEEGG2MMXXFFMMPPEEGG2MMXXFFHHDDWWAAVVYY4MMXXMMLL": {
-      "type": "string",
-      "pattern": "^(s3:\\/\\/)([^\\/]+\\/)+([^\\/\\.]+|(([^\\/]*)\\.([mM]2[vV]|[mM][pP][eE][gG]|[aA][vV][iI]|[mM][pP]4|[fF][lL][vV]|[mM][pP][tT]|[mM][pP][gG]|[mM]4[vV]|[tT][rR][pP]|[fF]4[vV]|[mM]2[tT][sS]|[tT][sS]|264|[hH]264|[mM][kK][vV]|[mM][oO][vV]|[mM][tT][sS]|[mM]2[tT]|[wW][mM][vV]|[aA][sS][fF]|[vV][oO][bB]|3[gG][pP]|3[gG][pP][pP]|[mM][xX][fF]|[dD][iI][vV][xX]|[xX][vV][iI][dD]|[rR][aA][wW]|[dD][vV]|[gG][xX][fF]|[mM]1[vV]|3[gG]2|[vV][mM][fF]|[mM]3[uU]8|[lL][cC][hH]|[gG][xX][fF]_[mM][pP][eE][gG]2|[mM][xX][fF]_[mM][pP][eE][gG]2|[mM][xX][fF][hH][dD]|[wW][aA][vV]|[yY]4[mM]|[xX][mM][lL])))$"
     },
     "__stringPatternSNManifestConfirmConditionNotificationNS": {
       "type": "string",
