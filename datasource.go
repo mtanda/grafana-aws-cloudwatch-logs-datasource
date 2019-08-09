@@ -225,7 +225,12 @@ func (t *AwsCloudWatchLogsDatasource) handleInsightsQuery(tsdbReq *datasource.Da
 		}, nil
 	}
 
-	dresp, err := svc.DescribeQueries(&cloudwatchlogs.DescribeQueriesInput{LogGroupName: target.InputInsightsStartQuery.LogGroupName})
+	var dresp *cloudwatchlogs.DescribeQueriesOutput
+	if target.InputInsightsStartQuery.LogGroupNames != nil {
+		dresp, err = svc.DescribeQueries(&cloudwatchlogs.DescribeQueriesInput{LogGroupName: target.InputInsightsStartQuery.LogGroupNames[0]})
+	} else {
+		dresp, err = svc.DescribeQueries(&cloudwatchlogs.DescribeQueriesInput{LogGroupName: target.InputInsightsStartQuery.LogGroupName})
+	}
 	if err != nil {
 		return nil, err
 	}

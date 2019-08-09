@@ -158,11 +158,16 @@ export class AwsCloudWatchLogsDatasource {
           delete input.logStreamNames;
         }
       } else {
+        const logGroupName = this.templateSrv.replace(target.logGroupName, options.scopedVars);
         inputInsightsStartQuery = {
-          logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
           queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
           limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10)
         };
+        if (logGroupName.indexOf(',') >= 0) {
+          inputInsightsStartQuery.logGroupNames = logGroupName.split(',');
+        } else {
+          inputInsightsStartQuery.logGroupName = logGroupName;
+        }
       }
 
       return {
