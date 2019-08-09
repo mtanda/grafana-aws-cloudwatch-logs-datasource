@@ -1,29 +1,32 @@
 import _ from "lodash";
 import TableModel from 'grafana/app/core/table_model';
 import flatten from 'grafana/app/core/utils/flatten';
+import { DataSourceApi, DataSourceInstanceSettings } from '@grafana/ui';
+import { AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions } from './types';
+import { BackendSrv } from 'grafana/app/core/services/backend_srv';
+import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
 
-export class AwsCloudWatchLogsDatasource {
+export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions> {
   type: string;
-  url: string;
+  url: any;
   name: string;
-  id: string;
+  id: any;
   defaultRegion: string;
-  q: any;
-  $q: any;
-  backendSrv: any;
-  templateSrv: any;
-  timeSrv: any;
 
-  constructor(instanceSettings, $q, backendSrv, templateSrv, timeSrv) {
+  constructor(
+    instanceSettings: DataSourceInstanceSettings<AwsCloudWatchLogsOptions>,
+    private $q: any,
+    private backendSrv: BackendSrv,
+    private templateSrv: TemplateSrv,
+    private timeSrv: any
+  ) {
+    super(instanceSettings);
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
     this.id = instanceSettings.id;
-    this.defaultRegion = instanceSettings.jsonData.defaultRegion;
-    this.q = $q;
-    this.backendSrv = backendSrv;
-    this.templateSrv = templateSrv;
-    this.timeSrv = timeSrv;
+    const settingsData = instanceSettings.jsonData || ({} as AwsCloudWatchLogsOptions);
+    this.defaultRegion = settingsData.defaultRegion;
   }
 
   async query(options) {
@@ -31,7 +34,7 @@ export class AwsCloudWatchLogsDatasource {
     query.targets = query.targets.filter(t => !t.hide);
 
     if (query.targets.length <= 0) {
-      return this.q.when({ data: [] });
+      return this.$q.when({ data: [] });
     }
 
     return await this.doRequest({
@@ -44,7 +47,7 @@ export class AwsCloudWatchLogsDatasource {
       region: this.defaultRegion,
       logGroupNamePrefix: 'test'
     }).then(res => {
-      return this.q.when({ status: "success", message: "Data source is working", title: "Success" });
+      return this.$q.when({ status: "success", message: "Data source is working", title: "Success" });
     }).catch(err => {
       return { status: "error", message: err.message, title: "Error" };
     });
