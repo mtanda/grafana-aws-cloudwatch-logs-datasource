@@ -36,6 +36,7 @@ type Target struct {
 	LegendFormat            string
 	TimestampColumn         string
 	ValueColumn             string
+	StartFromHead           bool
 }
 
 var (
@@ -81,7 +82,7 @@ func (t *AwsCloudWatchLogsDatasource) Query(ctx context.Context, tsdbReq *dataso
 		target.Input.StartTime = aws.Int64(fromRaw)
 		target.Input.EndTime = aws.Int64(toRaw)
 
-		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input)
+		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input, true)
 		if err != nil {
 			return nil, err
 		}
@@ -161,7 +162,7 @@ func (t *AwsCloudWatchLogsDatasource) handleQuery(tsdbReq *datasource.Datasource
 	}
 
 	for _, target := range targets {
-		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input)
+		resp, err := t.getLogEvent(tsdbReq, target.Region, &target.Input, target.StartFromHead)
 		if err != nil {
 			return nil, err
 		}
@@ -362,7 +363,7 @@ func (t *AwsCloudWatchLogsDatasource) handleInsightsQuery(tsdbReq *datasource.Da
 	return response, nil
 }
 
-func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.DatasourceRequest, region string, input *cloudwatchlogs.FilterLogEventsInput) (*cloudwatchlogs.FilterLogEventsOutput, error) {
+func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.DatasourceRequest, region string, input *cloudwatchlogs.FilterLogEventsInput, startFromHead bool) (*cloudwatchlogs.FilterLogEventsOutput, error) {
 	svc, err := t.getClient(tsdbReq.Datasource, region)
 	if err != nil {
 		return nil, err
@@ -387,7 +388,7 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.Datasource
 			EndTime:       input.EndTime,
 			LogGroupName:  input.LogGroupName,
 			LogStreamName: input.LogStreamNames[0],
-			StartFromHead: aws.Bool(true),
+			StartFromHead: aws.Bool(startFromHead),
 			Limit:         input.Limit,
 		}
 		err = svc.GetLogEventsPages(i,
