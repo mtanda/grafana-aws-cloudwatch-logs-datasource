@@ -49,7 +49,12 @@ module.exports = {
         loaders: [
           {
             loader: 'babel-loader',
-            options: { presets: ['env'] }
+            options: {
+              plugins: [
+                'angularjs-annotate'
+              ],
+              presets: ['env']
+            }
           },
           'ts-loader'
         ],
