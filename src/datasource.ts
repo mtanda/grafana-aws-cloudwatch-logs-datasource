@@ -1,10 +1,8 @@
-import _ from "lodash";
+import _ from 'lodash';
 import TableModel from 'grafana/app/core/table_model';
 import flatten from 'grafana/app/core/utils/flatten';
 import { DataSourceApi, DataSourceInstanceSettings } from '@grafana/ui';
 import { AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions } from './types';
-import { BackendSrv } from 'grafana/app/core/services/backend_srv';
-import { TemplateSrv } from 'grafana/app/features/templating/template_srv';
 
 export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions> {
   type: string;
@@ -13,11 +11,11 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   id: any;
   defaultRegion: string;
 
+  /** @ngInject */
   constructor(
     instanceSettings: DataSourceInstanceSettings<AwsCloudWatchLogsOptions>,
-    private $q: any,
-    private backendSrv: BackendSrv,
-    private templateSrv: TemplateSrv,
+    private backendSrv: any,
+    private templateSrv: any,
     private timeSrv: any
   ) {
     super(instanceSettings);
@@ -30,85 +28,89 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   }
 
   async query(options) {
-    let query = this.buildQueryParameters(options);
+    const query = this.buildQueryParameters(options);
     query.targets = query.targets.filter(t => !t.hide);
 
     if (query.targets.length <= 0) {
-      return this.$q.when({ data: [] });
+      return Promise.resolve({ data: [] });
     }
 
     return await this.doRequest({
-      data: query
+      data: query,
     });
   }
 
   testDatasource() {
     return this.doMetricQueryRequest('log_group_names', {
       region: this.defaultRegion,
-      logGroupNamePrefix: 'test'
-    }).then(res => {
-      return this.$q.when({ status: "success", message: "Data source is working", title: "Success" });
-    }).catch(err => {
-      return { status: "error", message: err.message, title: "Error" };
-    });
+      logGroupNamePrefix: 'test',
+    })
+      .then(res => {
+        return Promise.resolve({ status: 'success', message: 'Data source is working', title: 'Success' });
+      })
+      .catch(err => {
+        return { status: 'error', message: err.message, title: 'Error' };
+      });
   }
 
   async doRequest(options) {
-    const results = await Promise.all(options.data.targets.map(async (target) => {
-      if (!target.useInsights) {
-        return await this.backendSrv.datasourceRequest({
-          url: '/api/tsdb/query',
-          method: 'POST',
-          data: {
-            from: options.data.range.from.valueOf().toString(),
-            to: options.data.range.to.valueOf().toString(),
-            queries: [target],
-          }
-        });
-      } else {
-        const startResult = await this.backendSrv.datasourceRequest({
-          url: '/api/tsdb/query',
-          method: 'POST',
-          data: {
-            from: options.data.range.from.valueOf().toString(),
-            to: options.data.range.to.valueOf().toString(),
-            queries: [target],
-          }
-        });
-        const queryId = startResult.data.results[target.refId].meta.QueryId;
-        target.queryId = queryId;
-        let queryResult;
-        for (let i = 0; i < 60; i++) {
-          queryResult = await this.backendSrv.datasourceRequest({
+    const results = await Promise.all(
+      options.data.targets.map(async target => {
+        if (!target.useInsights) {
+          return await this.backendSrv.datasourceRequest({
             url: '/api/tsdb/query',
             method: 'POST',
             data: {
               from: options.data.range.from.valueOf().toString(),
               to: options.data.range.to.valueOf().toString(),
               queries: [target],
-            }
+            },
           });
-          const status = queryResult.data.results[target.refId].meta.Status;
-          if (status === 'Complete') {
-            break;
-          } else if (_.includes(['Failed', 'Cancelled'], status)) {
-            throw 'insights query failed';
-          } else {
-            await this.delay(1000);
-            continue; // in progress
+        } else {
+          const startResult = await this.backendSrv.datasourceRequest({
+            url: '/api/tsdb/query',
+            method: 'POST',
+            data: {
+              from: options.data.range.from.valueOf().toString(),
+              to: options.data.range.to.valueOf().toString(),
+              queries: [target],
+            },
+          });
+          const queryId = startResult.data.results[target.refId].meta.QueryId;
+          target.queryId = queryId;
+          let queryResult;
+          for (let i = 0; i < 60; i++) {
+            queryResult = await this.backendSrv.datasourceRequest({
+              url: '/api/tsdb/query',
+              method: 'POST',
+              data: {
+                from: options.data.range.from.valueOf().toString(),
+                to: options.data.range.to.valueOf().toString(),
+                queries: [target],
+              },
+            });
+            const status = queryResult.data.results[target.refId].meta.Status;
+            if (status === 'Complete') {
+              break;
+            } else if (_.includes(['Failed', 'Cancelled'], status)) {
+              throw new Error('insights query failed');
+            } else {
+              await this.delay(1000);
+              continue; // in progress
+            }
           }
+          return queryResult;
         }
-        return queryResult;
-      }
-    }));
+      })
+    );
 
     const resultsMap = {};
     _.each(results, (result: any) => {
-      _.each(result.data.results, (r) => {
+      _.each(result.data.results, r => {
         resultsMap[r.refId] = r;
-      })
-    })
-    let res: any = [];
+      });
+    });
+    const res: any = [];
     for (const target of options.data.targets) {
       const r = resultsMap[target.refId];
       if (!_.isEmpty(r.series)) {
@@ -124,7 +126,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     }
 
     return {
-      data: res
+      data: res,
     };
   }
 
@@ -133,7 +135,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   }
 
   buildQueryParameters(options) {
-    let targets = _.map(options.targets, target => {
+    const targets = _.map(options.targets, target => {
       let input: any = {};
       let inputInsightsStartQuery: any = {};
 
@@ -145,17 +147,21 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
       if (!target.useInsights) {
         input = {
           logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          logStreamNames: _.flatten(target.logStreamNames.filter(n => { return n !== ""; }).map(n => {
-            const replaced = this.templateSrv.replace(n, options.scopedVars, 'json');
-            if (n !== replaced) {
-              return JSON.parse(replaced);
-            } else {
-              return n;
-            }
-          })),
+          logStreamNames: _.flatten(
+            target.logStreamNames
+              .filter(n => n !== '')
+              .map(n => {
+                const replaced = this.templateSrv.replace(n, options.scopedVars, 'json');
+                if (n !== replaced) {
+                  return JSON.parse(replaced);
+                } else {
+                  return n;
+                }
+              })
+          ),
           filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
           limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
-          interleaved: false
+          interleaved: false,
         };
         if (input.logStreamNames.length === 0) {
           delete input.logStreamNames;
@@ -164,7 +170,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
         const logGroupName = this.templateSrv.replace(target.logGroupName, options.scopedVars);
         inputInsightsStartQuery = {
           queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
-          limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10)
+          limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
         };
         if (logGroupName.indexOf(',') >= 0) {
           inputInsightsStartQuery.logGroupNames = logGroupName.split(',');
@@ -185,7 +191,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
         timestampColumn: target.timestampColumn,
         valueColumn: target.valueColumn,
         input: input,
-        inputInsightsStartQuery: inputInsightsStartQuery
+        inputInsightsStartQuery: inputInsightsStartQuery,
       };
     });
 
@@ -194,9 +200,9 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   }
 
   expandMessageField(originalTable) {
-    var table = new TableModel();
-    var i, j;
-    var metricLabels = {};
+    const table = new TableModel();
+    let i, j;
+    const metricLabels = {};
 
     if (originalTable.rows.length === 0) {
       return table;
@@ -204,10 +210,10 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     table.columns = originalTable.columns;
 
     // Collect all labels across all metrics
-    let messageIndex = table.columns.findIndex(c => {
+    const messageIndex = table.columns.findIndex(c => {
       return c.text === 'Message';
     });
-    let messages = originalTable.rows.map(r => {
+    const messages = originalTable.rows.map(r => {
       let messageJson = {};
       try {
         if (r[messageIndex][0] === '{') {
@@ -218,26 +224,26 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
       }
       return messageJson;
     });
-    _.each(messages.slice(0, 100), (message) => {
-      let flattened = flatten(message, null);
-      for (let propName in flattened) {
+    _.each(messages.slice(0, 100), message => {
+      const flattened = flatten(message, null);
+      for (const propName in flattened) {
         metricLabels[propName] = 1;
       }
     });
 
     // Sort metric labels, create columns for them and record their index
-    let sortedLabels = _.keys(metricLabels).sort();
-    _.each(sortedLabels, function (label, labelIndex) {
+    const sortedLabels = _.keys(metricLabels).sort();
+    _.each(sortedLabels, (label, labelIndex) => {
       metricLabels[label] = labelIndex + 1;
       table.columns.push({ text: label });
     });
 
     // Populate rows, set value to empty string when label not present.
     for (i = 0; i < originalTable.rows.length; i++) {
-      let reordered = originalTable.rows[i];
-      let message = messages[i];
+      const reordered = originalTable.rows[i];
+      const message = messages[i];
       for (j = 0; j < sortedLabels.length; j++) {
-        let label = sortedLabels[j];
+        const label = sortedLabels[j];
         reordered.push(_.get(message, label) || '');
       }
       table.rows.push(reordered);
@@ -249,54 +255,55 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   metricFindQuery(query) {
     let region;
 
-    let logGroupNamesQuery = query.match(/^log_group_names\(([^,]+?),\s?(.+)\)/);
+    const logGroupNamesQuery = query.match(/^log_group_names\(([^,]+?),\s?(.+)\)/);
     if (logGroupNamesQuery) {
       region = logGroupNamesQuery[1];
-      let prefix = logGroupNamesQuery[2];
+      const prefix = logGroupNamesQuery[2];
       return this.doMetricQueryRequest('log_group_names', {
         region: this.templateSrv.replace(region),
-        logGroupNamePrefix: this.templateSrv.replace(prefix)
+        logGroupNamePrefix: this.templateSrv.replace(prefix),
       });
     }
 
-    let logStreamNamesQuery = query.match(/^log_stream_names\(([^,]+?),\s?(.+)\)/);
+    const logStreamNamesQuery = query.match(/^log_stream_names\(([^,]+?),\s?(.+)\)/);
     if (logStreamNamesQuery) {
       region = logStreamNamesQuery[1];
-      let logGroupName = logStreamNamesQuery[2];
+      const logGroupName = logStreamNamesQuery[2];
       return this.doMetricQueryRequest('log_stream_names', {
         region: this.templateSrv.replace(region),
         logGroupName: this.templateSrv.replace(logGroupName),
-        logStreamNamePrefix: ""
+        logStreamNamePrefix: '',
       });
     }
 
-
-    return this.$q.when([]);
+    return Promise.resolve([]);
   }
 
   doMetricQueryRequest(subtype, parameters) {
-    var range = this.timeSrv.timeRange();
-    return this.backendSrv.datasourceRequest({
-      url: '/api/tsdb/query',
-      method: 'POST',
-      data: {
-        from: range.from.valueOf().toString(),
-        to: range.to.valueOf().toString(),
-        queries: [
-          _.extend(
-            {
-              refId: 'metricFindQuery',
-              datasourceId: this.id,
-              queryType: 'metricFindQuery',
-              subtype: subtype,
-            },
-            parameters
-          ),
-        ],
-      }
-    }).then(r => {
-      return this.transformSuggestDataFromTable(r.data);
-    });
+    const range = this.timeSrv.timeRange();
+    return this.backendSrv
+      .datasourceRequest({
+        url: '/api/tsdb/query',
+        method: 'POST',
+        data: {
+          from: range.from.valueOf().toString(),
+          to: range.to.valueOf().toString(),
+          queries: [
+            _.extend(
+              {
+                refId: 'metricFindQuery',
+                datasourceId: this.id,
+                queryType: 'metricFindQuery',
+                subtype: subtype,
+              },
+              parameters
+            ),
+          ],
+        },
+      })
+      .then(r => {
+        return this.transformSuggestDataFromTable(r.data);
+      });
   }
 
   transformSuggestDataFromTable(suggestData) {
@@ -309,65 +316,70 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   }
 
   annotationQuery(options) {
-    let annotation = options.annotation;
-    let region = annotation.region || this.defaultRegion;
-    let logGroupName = annotation.logGroupName || '';
-    let filterPattern = annotation.filterPattern || '';
+    const annotation = options.annotation;
+    const region = annotation.region || this.defaultRegion;
+    const logGroupName = annotation.logGroupName || '';
+    const filterPattern = annotation.filterPattern || '';
     let tagKeys = annotation.tagKeys || '';
     tagKeys = tagKeys.split(',');
-    let titleFormat = annotation.titleFormat || '';
-    let textFormat = annotation.textFormat || '';
+    const titleFormat = annotation.titleFormat || '';
+    const textFormat = annotation.textFormat || '';
 
-    if (_.isEmpty(region) || _.isEmpty(logGroupName)) { return Promise.resolve([]); }
+    if (_.isEmpty(region) || _.isEmpty(logGroupName)) {
+      return Promise.resolve([]);
+    }
 
-    let range = this.timeSrv.timeRange();
-    return this.backendSrv.datasourceRequest({
-      url: '/api/tsdb/query',
-      method: 'POST',
-      data: {
-        from: range.from.valueOf().toString(),
-        to: range.to.valueOf().toString(),
-        queries: [
-          {
-            refId: 'annotationQuery',
-            datasourceId: this.id,
-            queryType: 'annotationQuery',
-            region: this.templateSrv.replace(region),
-            input: {
-              logGroupName: this.templateSrv.replace(logGroupName),
-              filterPattern: this.templateSrv.replace(filterPattern),
-              interleaved: false
-            }
-          }
-        ]
-      }
-    }).then(r => {
-      if (!r.data.results[""].meta.Events) {
-        return [];
-      }
-      let eventList = r.data.results[""].meta.Events.map((event) => {
-        let messageJson = JSON.parse(event.Message);
-        let tags = _.chain(messageJson)
-          .filter((v, k) => {
-            return _.includes(tagKeys, k);
-          }).value();
+    const range = this.timeSrv.timeRange();
+    return this.backendSrv
+      .datasourceRequest({
+        url: '/api/tsdb/query',
+        method: 'POST',
+        data: {
+          from: range.from.valueOf().toString(),
+          to: range.to.valueOf().toString(),
+          queries: [
+            {
+              refId: 'annotationQuery',
+              datasourceId: this.id,
+              queryType: 'annotationQuery',
+              region: this.templateSrv.replace(region),
+              input: {
+                logGroupName: this.templateSrv.replace(logGroupName),
+                filterPattern: this.templateSrv.replace(filterPattern),
+                interleaved: false,
+              },
+            },
+          ],
+        },
+      })
+      .then(r => {
+        if (!r.data.results[''].meta.Events) {
+          return [];
+        }
+        const eventList = r.data.results[''].meta.Events.map(event => {
+          const messageJson = JSON.parse(event.Message);
+          const tags = _.chain(messageJson)
+            .filter((v, k) => {
+              return _.includes(tagKeys, k);
+            })
+            .value();
 
-        return {
-          annotation: annotation,
-          time: event.Timestamp,
-          title: this.renderTemplate(titleFormat, messageJson),
-          tags: tags,
-          text: this.renderTemplate(textFormat, messageJson)
-        };
+          return {
+            annotation: annotation,
+            time: event.Timestamp,
+            title: this.renderTemplate(titleFormat, messageJson),
+            tags: tags,
+            text: this.renderTemplate(textFormat, messageJson),
+          };
+        });
+
+        return eventList;
       });
-
-      return eventList;
-    });
   }
 
   renderTemplate(aliasPattern, aliasData) {
-    var aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
-    return aliasPattern.replace(aliasRegex, function (match, g1) {
+    const aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
+    return aliasPattern.replace(aliasRegex, (match, g1) => {
       if (aliasData[g1]) {
         return aliasData[g1];
       }

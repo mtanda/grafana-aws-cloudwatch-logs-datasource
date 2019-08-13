@@ -30,7 +30,7 @@
     "updated": "2018-04-25"
   },
   "dependencies": {
-    "grafanaVersion": "5.x.x",
+    "grafanaVersion": "6.3.x",
     "plugins": []
   }
 }

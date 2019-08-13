@@ -5,8 +5,9 @@ import { AwsCloudWatchLogsDatasourceConfigCtrl } from './config_ctrl';
 import { AwsCloudWatchLogsDatasourceQueryField } from './components/AwsCloudWatchLogsQueryField';
 import AwsCloudWatchLogsDatasourceStartPage from './components/AwsCloudWatchLogsStartPage';
 import { DataSourcePlugin } from '@grafana/ui';
+import { AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions } from './types';
 
-export const plugin = new DataSourcePlugin(AwsCloudWatchLogsDatasource)
+export const plugin = new DataSourcePlugin<AwsCloudWatchLogsDatasource, AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions>(AwsCloudWatchLogsDatasource)
   .setConfigCtrl(AwsCloudWatchLogsDatasourceConfigCtrl)
   .setQueryCtrl(AwsCloudWatchLogsDatasourceQueryCtrl)
   .setAnnotationQueryCtrl(AwsCloudWatchLogsAnnotationsQueryCtrl)
