@@ -6,6 +6,7 @@
     "config": "public/app/plugins/datasource/mtanda-aws-cloudwatch-logs-datasource/partials/config.html"
   },
   "metrics": true,
+  "logs": true,
   "annotations": true,
   "hiddenQueries": true,
   "backend": true,
@@ -29,7 +30,7 @@
     "updated": "2018-04-25"
   },
   "dependencies": {
-    "grafanaVersion": "5.x.x",
+    "grafanaVersion": "6.3.x",
     "plugins": []
   }
 }

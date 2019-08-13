@@ -92,6 +92,12 @@
     </div>
   </div>
 
+  <div class="gf-form-inline" ng-if="!ctrl.target.useInsights && ctrl.target.filterPattern === ''">
+    <gf-form-switch class="gf-form" label="Start From Head" label-class="width-20" checked="ctrl.target.startFromHead"
+      on-change="ctrl.onChangeInternal()">
+    </gf-form-switch>
+  </div>
+
   <div class="gf-form-inline">
     <gf-form-switch class="gf-form" label="Use Insights" label-class="width-20" checked="ctrl.target.useInsights"
       on-change="ctrl.onChangeInternal()">
