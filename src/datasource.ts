@@ -190,6 +190,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
         legendFormat: target.legendFormat,
         timestampColumn: target.timestampColumn,
         valueColumn: target.valueColumn,
+        startFromHead: !_.isUndefined(target.startFromHead) ? target.startFromHead : true,
         input: input,
         inputInsightsStartQuery: inputInsightsStartQuery,
       };
