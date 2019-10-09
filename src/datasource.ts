@@ -135,7 +135,9 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   }
 
   buildQueryParameters(options) {
-    const targets = _.map(options.targets, target => {
+    const targets = options.targets.filter(target => {
+      return !!target.logGroupName;
+    }).map(target => {
       let input: any = {};
       let inputInsightsStartQuery: any = {};
 
