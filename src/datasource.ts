@@ -135,68 +135,70 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   }
 
   buildQueryParameters(options) {
-    const targets = options.targets.filter(target => {
-      return !!target.logGroupName;
-    }).map(target => {
-      let input: any = {};
-      let inputInsightsStartQuery: any = {};
+    const targets = options.targets
+      .filter(target => {
+        return !!target.logGroupName;
+      })
+      .map(target => {
+        let input: any = {};
+        let inputInsightsStartQuery: any = {};
 
-      // backward compatibility
-      if (_.isNumber(target.limit)) {
-        target.limit = String(target.limit);
-      }
-
-      if (!target.useInsights) {
-        input = {
-          logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
-          logStreamNames: _.flatten(
-            target.logStreamNames
-              .filter(n => n !== '')
-              .map(n => {
-                const replaced = this.templateSrv.replace(n, options.scopedVars, 'json');
-                if (n !== replaced) {
-                  return JSON.parse(replaced);
-                } else {
-                  return n;
-                }
-              })
-          ),
-          filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
-          limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
-          interleaved: false,
-        };
-        if (input.logStreamNames.length === 0) {
-          delete input.logStreamNames;
+        // backward compatibility
+        if (_.isNumber(target.limit)) {
+          target.limit = String(target.limit);
         }
-      } else {
-        const logGroupName = this.templateSrv.replace(target.logGroupName, options.scopedVars);
-        inputInsightsStartQuery = {
-          queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
-          limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
-        };
-        if (logGroupName.indexOf(',') >= 0) {
-          inputInsightsStartQuery.logGroupNames = logGroupName.split(',');
+
+        if (!target.useInsights) {
+          input = {
+            logGroupName: this.templateSrv.replace(target.logGroupName, options.scopedVars),
+            logStreamNames: _.flatten(
+              target.logStreamNames
+                .filter(n => n !== '')
+                .map(n => {
+                  const replaced = this.templateSrv.replace(n, options.scopedVars, 'json');
+                  if (n !== replaced) {
+                    return JSON.parse(replaced);
+                  } else {
+                    return n;
+                  }
+                })
+            ),
+            filterPattern: this.templateSrv.replace(target.filterPattern, options.scopedVars),
+            limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
+            interleaved: false,
+          };
+          if (input.logStreamNames.length === 0) {
+            delete input.logStreamNames;
+          }
         } else {
-          inputInsightsStartQuery.logGroupName = logGroupName;
+          const logGroupName = this.templateSrv.replace(target.logGroupName, options.scopedVars);
+          inputInsightsStartQuery = {
+            queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
+            limit: parseInt(this.templateSrv.replace(target.limit, options.scopedVars), 10),
+          };
+          if (logGroupName.indexOf(',') >= 0) {
+            inputInsightsStartQuery.logGroupNames = logGroupName.split(',');
+          } else {
+            inputInsightsStartQuery.logGroupName = logGroupName;
+          }
         }
-      }
 
-      return {
-        refId: target.refId,
-        hide: target.hide,
-        datasourceId: this.id,
-        queryType: 'timeSeriesQuery',
-        format: target.format || 'timeserie',
-        region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
-        useInsights: target.useInsights,
-        legendFormat: target.legendFormat,
-        timestampColumn: target.timestampColumn,
-        valueColumn: target.valueColumn,
-        startFromHead: !_.isUndefined(target.startFromHead) ? target.startFromHead : true,
-        input: input,
-        inputInsightsStartQuery: inputInsightsStartQuery,
-      };
-    });
+        return {
+          refId: target.refId,
+          hide: target.hide,
+          datasourceId: this.id,
+          queryType: 'timeSeriesQuery',
+          format: target.format || 'timeserie',
+          region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
+          useInsights: target.useInsights,
+          legendFormat: target.legendFormat,
+          timestampColumn: target.timestampColumn,
+          valueColumn: target.valueColumn,
+          startFromHead: !_.isUndefined(target.startFromHead) ? target.startFromHead : true,
+          input: input,
+          inputInsightsStartQuery: inputInsightsStartQuery,
+        };
+      });
 
     options.targets = targets;
     return options;
