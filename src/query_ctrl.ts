@@ -9,7 +9,7 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
   datasource: any;
   suggestLogGroupName: any;
   suggestLogStreamName: any;
-  static templateUrl = 'partials/query.editor.html';
+  static templateUrl = 'query.editor.html';
 
   /** @ngInject */
   constructor($scope, $injector, templateSrv) {

@@ -3,7 +3,7 @@
   "id": "mtanda-aws-cloudwatch-logs-datasource",
   "type": "datasource",
   "partials": {
-    "config": "public/app/plugins/datasource/mtanda-aws-cloudwatch-logs-datasource/partials/config.html"
+    "config": "public/app/plugins/datasource/mtanda-aws-cloudwatch-logs-datasource/config.html"
   },
   "metrics": true,
   "logs": true,
