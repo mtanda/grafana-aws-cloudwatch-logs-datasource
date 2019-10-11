@@ -143,14 +143,14 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
       return new Observable(observer => {
         (async () => {
           const intervalMs = 5 * 1000;
-          let lastTo = new Date().valueOf();
+          const now = new Date().valueOf();
           for (let i = 0; i < 10; i++) {
             const queryResult = await this.backendSrv.datasourceRequest({
               url: '/api/tsdb/query',
               method: 'POST',
               data: {
-                from: (lastTo - intervalMs).toString(),
-                to: lastTo.toString(),
+                from: (now - intervalMs).toString(),
+                to: now.toString(),
                 queries: [target],
               },
             });
