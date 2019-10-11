@@ -39,7 +39,8 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     }
 
     const subQueries = query.targets.map(target => {
-      if (target.liveStreaming) {
+      //if (target.liveStreaming) {
+      if (!target.liveStreaming) {
         console.log('do live req');
         return this.doLiveRequest({ data: query });
       }
