@@ -149,7 +149,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
               url: '/api/tsdb/query',
               method: 'POST',
               data: {
-                from: (lastTo - (intervalMs)).toString(),
+                from: (lastTo - intervalMs).toString(),
                 to: lastTo.toString(),
                 queries: [target],
               },
