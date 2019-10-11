@@ -23,6 +23,8 @@ export class AwsCloudWatchLogsDatasourceQueryCtrl extends QueryCtrl {
     this.target.filterPattern = this.target.filterPattern || '';
     this.target.queryString = this.target.queryString || '';
     this.target.startFromHead = !_.isUndefined(this.target.startFromHead) ? this.target.startFromHead : true;
+    this.target.useInsights = this.target.useInsights || false;
+    this.target.liveStreaming = this.target.liveStreaming || true;
 
     // backward compatibility
     if (_.isNumber(this.target.limit)) {
