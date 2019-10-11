@@ -38,11 +38,11 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
       return of({ state: LoadingState.Done, data: [] });
     }
 
-    const subQueries = query.targets.map(target => {
+    let subQueries = query.targets.map(target => {
       //if (target.liveStreaming) {
       if (!target.liveStreaming) {
         console.log('do live req');
-        return this.doLiveRequest({ data: query });
+        return this.doLiveRequest(target);
       }
       console.log('do no live req');
       return from(this.doRequest({ data: query }));
@@ -141,52 +141,50 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     };
   }
 
-  doLiveRequest(options) {
-    return options.data.targets.map(async target => {
-      const intervalMs = 5 * 1000;
-      return interval(intervalMs).pipe(
-        timestamp(),
-        take(10),
-        map(async v => {
-          console.log('req');
-          return await this.backendSrv.datasourceRequest({
-            url: '/api/tsdb/query',
-            method: 'POST',
-            data: {
-              from: (v.timestamp - intervalMs).toString(),
-              to: v.timestamp.toString(),
-              queries: [target],
-            },
-          });
-        }),
-        scan((acc: any, one: any) => {
-          console.log(one);
-          if (one.series) {
-            // tood
-          } else if (one.tables) {
-            // tood
-          }
-          acc = one;
-          return acc;
-        }, {}),
-        map((queryResult: any) => {
-          console.log(queryResult);
-          if (queryResult.series) {
-            return {
-              key: `aws-cloudwatch-logs-${target.refId}`,
-              state: LoadingState.Streaming,
-              data: queryResult,
-            };
-          } else {
-            return {
-              key: `aws-cloudwatch-logs-${target.refId}`,
-              state: LoadingState.Streaming,
-              data: queryResult.tables.map(t => this.expandMessageField(t)),
-            };
-          }
-        })
-      );
-    });
+  doLiveRequest(target) {
+    const intervalMs = 5 * 1000;
+    return interval(intervalMs).pipe(
+      timestamp(),
+      take(10),
+      map(async v => {
+        console.log('req');
+        return await this.backendSrv.datasourceRequest({
+          url: '/api/tsdb/query',
+          method: 'POST',
+          data: {
+            from: (v.timestamp - intervalMs).toString(),
+            to: v.timestamp.toString(),
+            queries: [target],
+          },
+        });
+      }),
+      scan((acc: any, one: any) => {
+        console.log(one);
+        if (one.series) {
+          // tood
+        } else if (one.tables) {
+          // tood
+        }
+        acc = one;
+        return acc;
+      }, {}),
+      map((queryResult: any) => {
+        console.log(queryResult);
+        if (queryResult.series) {
+          return {
+            key: `aws-cloudwatch-logs-${target.refId}`,
+            state: LoadingState.Streaming,
+            data: queryResult,
+          };
+        } else {
+          return {
+            key: `aws-cloudwatch-logs-${target.refId}`,
+            state: LoadingState.Streaming,
+            data: queryResult.tables.map(t => this.expandMessageField(t)),
+          };
+        }
+      })
+    );
   }
 
   delay(msec) {
