@@ -1,8 +1,11 @@
 import _ from 'lodash';
 import TableModel from 'grafana/app/core/table_model';
 import flatten from 'grafana/app/core/utils/flatten';
-import { DataSourceApi, DataSourceInstanceSettings } from '@grafana/ui';
+import { DataSourceApi, DataSourceInstanceSettings, DataQueryRequest, DataQueryResponse } from '@grafana/ui';
+import { LoadingState } from '@grafana/data';
 import { AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions } from './types';
+import { Observable, merge, from, of } from 'rxjs';
+import { scan, map } from 'rxjs/operators';
 
 export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions> {
   type: string;
@@ -27,17 +30,22 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     this.defaultRegion = settingsData.defaultRegion;
   }
 
-  async query(options) {
+  query(options: DataQueryRequest<AwsCloudWatchLogsQuery>): Observable<DataQueryResponse> {
     const query = this.buildQueryParameters(options);
     query.targets = query.targets.filter(t => !t.hide);
 
     if (query.targets.length <= 0) {
-      return Promise.resolve({ data: [] });
+      return of({ state: LoadingState.Done, data: [] });
     }
 
-    return await this.doRequest({
-      data: query,
+    const subQueries = query.targets.map(target => {
+      if (target.liveStreaming) {
+        return this.doLiveRequest({ data: query });
+      }
+      return from(this.doRequest({ data: query }));
     });
+
+    return merge(...subQueries);
   }
 
   testDatasource() {
@@ -130,6 +138,53 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     };
   }
 
+  doLiveRequest(options) {
+    return options.data.targets.map(async target => {
+      return new Observable(observer => {
+        (async () => {
+          const intervalMs = 5 * 1000;
+          let lastTo = new Date().valueOf();
+          for (let i = 0; i < 10; i++) {
+            const queryResult = await this.backendSrv.datasourceRequest({
+              url: '/api/tsdb/query',
+              method: 'POST',
+              data: {
+                from: (lastTo - (intervalMs)).toString(),
+                to: lastTo.toString(),
+                queries: [target],
+              },
+            });
+            observer.next(queryResult);
+            await this.delay(intervalMs);
+          }
+          observer.complete();
+        })();
+      }).pipe(
+        scan((acc: any, one: any) => {
+          acc.fields = one.fields;
+          if (one.records) {
+            acc.records = (acc.records || []).concat(one.records);
+          } else if (one.messages) {
+            acc.messages = (acc.messages || []).concat(one.messages);
+          }
+          acc.done = !!one.done;
+          return acc;
+        }, {}),
+        map((queryResult: any) => {
+          if (queryResult.series) {
+            return {
+              data: queryResult,
+            };
+          } else {
+            return {
+              data: queryResult.tables.map(t => this.expandMessageField(t)),
+            };
+          }
+        })
+      );
+    });
+  }
+
   delay(msec) {
     return new Promise(resolve => setTimeout(resolve, msec));
   }
@@ -191,6 +246,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
           format: target.format || 'timeserie',
           region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
           useInsights: target.useInsights,
+          liveStreaming: target.liveStreaming,
           legendFormat: target.legendFormat,
           timestampColumn: target.timestampColumn,
           valueColumn: target.valueColumn,
