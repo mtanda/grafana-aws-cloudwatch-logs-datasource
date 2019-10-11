@@ -161,22 +161,25 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
         })();
       }).pipe(
         scan((acc: any, one: any) => {
-          acc.fields = one.fields;
-          if (one.records) {
-            acc.records = (acc.records || []).concat(one.records);
-          } else if (one.messages) {
-            acc.messages = (acc.messages || []).concat(one.messages);
+          if (one.series) {
+            // tood
+          } else if (one.tables) {
+            // tood
           }
-          acc.done = !!one.done;
+          acc = one;
           return acc;
         }, {}),
         map((queryResult: any) => {
           if (queryResult.series) {
             return {
+              key: `aws-cloudwatch-logs-${target.refId}`,
+              state: LoadingState.Streaming,
               data: queryResult,
             };
           } else {
             return {
+              key: `aws-cloudwatch-logs-${target.refId}`,
+              state: LoadingState.Streaming,
               data: queryResult.tables.map(t => this.expandMessageField(t)),
             };
           }
