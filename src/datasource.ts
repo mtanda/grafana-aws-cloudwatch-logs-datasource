@@ -160,6 +160,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
           });
         }),
         scan((acc: any, one: any) => {
+          console.log(one);
           if (one.series) {
             // tood
           } else if (one.tables) {
@@ -169,6 +170,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
           return acc;
         }, {}),
         map((queryResult: any) => {
+          console.log(queryResult);
           if (queryResult.series) {
             return {
               key: `aws-cloudwatch-logs-${target.refId}`,
