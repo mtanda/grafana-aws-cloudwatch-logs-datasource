@@ -4,8 +4,8 @@ import flatten from 'grafana/app/core/utils/flatten';
 import { DataSourceApi, DataSourceInstanceSettings, DataQueryRequest, DataQueryResponse } from '@grafana/ui';
 import { LoadingState } from '@grafana/data';
 import { AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions } from './types';
-import { Observable, merge, from, of } from 'rxjs';
-import { scan, map } from 'rxjs/operators';
+import { Observable, merge, from, of, interval } from 'rxjs';
+import { scan, map, timestamp, take } from 'rxjs/operators';
 
 export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions> {
   type: string;
@@ -40,8 +40,10 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
 
     const subQueries = query.targets.map(target => {
       if (target.liveStreaming) {
+        console.log('do live req');
         return this.doLiveRequest({ data: query });
       }
+      console.log('do no live req');
       return from(this.doRequest({ data: query }));
     });
 
@@ -140,26 +142,22 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
 
   doLiveRequest(options) {
     return options.data.targets.map(async target => {
-      return new Observable(observer => {
-        (async () => {
-          const intervalMs = 5 * 1000;
-          const now = new Date().valueOf();
-          for (let i = 0; i < 10; i++) {
-            const queryResult = await this.backendSrv.datasourceRequest({
-              url: '/api/tsdb/query',
-              method: 'POST',
-              data: {
-                from: (now - intervalMs).toString(),
-                to: now.toString(),
-                queries: [target],
-              },
-            });
-            observer.next(queryResult);
-            await this.delay(intervalMs);
-          }
-          observer.complete();
-        })();
-      }).pipe(
+      const intervalMs = 5 * 1000;
+      return interval(intervalMs).pipe(
+        timestamp(),
+        take(10),
+        map(async v => {
+          console.log('req');
+          return await this.backendSrv.datasourceRequest({
+            url: '/api/tsdb/query',
+            method: 'POST',
+            data: {
+              from: (v.timestamp - intervalMs).toString(),
+              to: v.timestamp.toString(),
+              queries: [target],
+            },
+          });
+        }),
         scan((acc: any, one: any) => {
           if (one.series) {
             // tood
