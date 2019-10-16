@@ -1,6 +1,8 @@
 ## AWS CloudWatch Logs Datasource Plugin for Grafana
 
 ### Setup
+Follow [Installing Plugins Manually](https://grafana.com/docs/plugins/installation/) steps, and install plugin from released zip file.
+
 Allow following API for EC2 instance, and run Grafana on the EC2 instance.
 
 - logs:FilterLogEvents
