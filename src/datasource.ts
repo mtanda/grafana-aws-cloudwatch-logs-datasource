@@ -118,10 +118,20 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
           res.push({ target: s.name, datapoints: s.points });
         });
       }
-      if (!_.isEmpty(r.tables)) {
-        _.forEach(r.tables, t => {
-          res.push(this.expandMessageField(t));
-        });
+      switch (target.format) {
+        case 'table':
+          if (!_.isEmpty(r.tables)) {
+            _.forEach(r.tables, t => {
+              res.push(this.expandMessageField(t));
+            });
+          }
+          break;
+        case 'logs':
+          if (!_.isEmpty(r.tables)) {
+            _.forEach(r.tables, t => {
+              res.push(this.expandMessageField(t));
+            });
+          }
       }
     }
 
@@ -183,12 +193,17 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
           }
         }
 
+        let format = target.format || 'timeserie';
+        if (format === 'logs') {
+          format = 'table';
+        }
+
         return {
           refId: target.refId,
           hide: target.hide,
           datasourceId: this.id,
           queryType: 'timeSeriesQuery',
-          format: target.format || 'timeserie',
+          format: format,
           region: this.templateSrv.replace(target.region, options.scopedVars) || this.defaultRegion,
           useInsights: target.useInsights,
           legendFormat: target.legendFormat,

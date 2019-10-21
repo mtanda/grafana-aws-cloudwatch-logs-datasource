@@ -6,7 +6,7 @@ export interface AwsCloudWatchLogsOptions extends DataSourceJsonData {
 
 export interface AwsCloudWatchLogsQuery extends DataQuery {
   refId: string;
-  format?: 'timeserie' | 'table';
+  format?: 'timeserie' | 'table' | 'logs';
   region?: string;
   logGroupName?: string;
   logStreamNames?: string[];
