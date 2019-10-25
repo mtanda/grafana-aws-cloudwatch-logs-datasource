@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/grafana_plugin_model/go/datasource"
+	"github.com/grafana/grafana-plugin-model/go/datasource"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
