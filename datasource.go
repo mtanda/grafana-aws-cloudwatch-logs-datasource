@@ -374,7 +374,7 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.Datasource
 		err = svc.FilterLogEventsPages(input,
 			func(page *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
 				resp.Events = append(resp.Events, page.Events...)
-				if len(resp.Events) > 1000 {
+				if len(resp.Events) > 10000 {
 					return false // safety limit
 				}
 				if int64(len(resp.Events)) >= *input.Limit {
@@ -402,7 +402,7 @@ func (t *AwsCloudWatchLogsDatasource) getLogEvent(tsdbReq *datasource.Datasource
 					}
 					resp.Events = append(resp.Events, fe)
 				}
-				if len(resp.Events) > 1000 {
+				if len(resp.Events) > 10000 {
 					return false // safety limit
 				}
 				if int64(len(resp.Events)) >= *input.Limit {
