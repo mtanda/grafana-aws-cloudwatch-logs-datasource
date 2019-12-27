@@ -1,4 +1,4 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/ui';
+import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface AwsCloudWatchLogsOptions extends DataSourceJsonData {
   defaultRegion: string;
@@ -11,9 +11,11 @@ export interface AwsCloudWatchLogsQuery extends DataQuery {
   logGroupName?: string;
   logStreamNames?: string[];
   filterPattern?: string;
-  queryString?: string;
+  queryString: string;
   limit?: string;
   legendFormat?: string;
   timestampColumn?: string;
   valueColumn?: string;
+  useInsights: boolean;
+  fromLogPanel?: boolean;
 }

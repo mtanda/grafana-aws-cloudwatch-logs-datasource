@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import TableModel from 'grafana/app/core/table_model';
 import flatten from 'grafana/app/core/utils/flatten';
-import { DataSourceApi, DataSourceInstanceSettings } from '@grafana/ui';
+import { DataSourceApi, DataSourceInstanceSettings, DataQueryRequest, DataQueryResponse, DataFrame, toDataFrame, FieldType } from '@grafana/data';
 import { AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions } from './types';
 
 export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudWatchLogsQuery, AwsCloudWatchLogsOptions> {
@@ -27,7 +27,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     this.defaultRegion = settingsData.defaultRegion;
   }
 
-  async query(options) {
+  async query(options: DataQueryRequest<AwsCloudWatchLogsQuery>): Promise<DataQueryResponse> {
     const query = this.buildQueryParameters(options);
     query.targets = query.targets.filter(t => !t.hide);
 
@@ -120,7 +120,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
       }
       if (!_.isEmpty(r.tables)) {
         _.forEach(r.tables, t => {
-          res.push(this.expandMessageField(t));
+          res.push(this.enhanceDataFrame(toDataFrame(this.expandMessageField(t))));
         });
       }
     }
@@ -137,7 +137,7 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
   buildQueryParameters(options) {
     const targets = options.targets
       .filter(target => {
-        return !!target.logGroupName;
+        return (target.fromLogPanel && target.queryString.length > 0) || !!target.logGroupName;
       })
       .map(target => {
         let input: any = {};
@@ -171,6 +171,25 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
             delete input.logStreamNames;
           }
         } else {
+          if (target.fromLogPanel) {
+            // query from log explore
+            const apiParameterPart = target.queryString.split('|')[0];
+            const apiParameters = apiParameterPart
+              .replace(/\s+/g, ' ')
+              .replace(/^\s/, '')
+              .replace(/\s$/, '')
+              .split(' ')
+              .map(p => p.split('='));
+            apiParameters.forEach(p => {
+              if (p[0] && p[0] === 'region') {
+                target.region = p[1];
+              }
+              if (p[0] && p[0] === 'log_group_names') {
+                target.logGroupName = p[1];
+              }
+            });
+            target.queryString = target.queryString.slice(apiParameterPart.length + 1);
+          }
           const logGroupName = this.templateSrv.replace(target.logGroupName, options.scopedVars);
           inputInsightsStartQuery = {
             queryString: this.templateSrv.replace(target.queryString, options.scopedVars),
@@ -255,6 +274,14 @@ export default class AwsCloudWatchLogsDatasource extends DataSourceApi<AwsCloudW
     }
 
     return table;
+  }
+
+  enhanceDataFrame(df: DataFrame) {
+    if (df.fields[0].name === '@timestamp' || /(bin|datefloor|dateceil|fromMillis)\(/.test(df.fields[0].name)) {
+      df.fields[0].type = FieldType.time;
+      df.fields[0].values['buffer'] = df.fields[0].values['buffer'].map(v => new Date(Date.parse(v)));
+    }
+    return df;
   }
 
   metricFindQuery(query) {
