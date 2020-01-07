@@ -9,6 +9,9 @@ Allow following API for EC2 instance, and run Grafana on the EC2 instance.
 - logs:GetLogEvents
 - logs:DescribeLogGroups
 - logs:DescribeLogStreams
+- logs:DescribeQueries
+- logs:StartQuery
+- logs:StopQuery
 
 ### Templating
 
