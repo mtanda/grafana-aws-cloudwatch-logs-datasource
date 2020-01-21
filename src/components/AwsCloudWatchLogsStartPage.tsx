@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { ExploreStartPageProps } from '@grafana/ui';
+import { ExploreStartPageProps } from '@grafana/data';
 
 export default class AwsCloudWatchLogsDatasourceStartPage extends PureComponent<ExploreStartPageProps> {
   render() {
