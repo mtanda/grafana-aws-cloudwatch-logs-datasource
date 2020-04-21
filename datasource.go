@@ -207,7 +207,9 @@ func (t *AwsCloudWatchLogsDatasource) handleInsightsQuery(tsdbReq *datasource.Da
 
 	// start query
 	if target.QueryId == "" {
-		sresp, err := svc.StartQuery(&target.InputInsightsStartQuery)
+		req, out := svc.StartQueryRequest(&target.InputInsightsStartQuery)
+		req.RetryErrorCodes = append(req.RetryErrorCodes, cloudwatchlogs.ErrCodeLimitExceededException)
+		sresp, err := out, req.Send()
 		if err != nil {
 			return nil, err
 		}
